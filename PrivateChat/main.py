@@ -229,6 +229,21 @@ MDScreen:
                             width: 1.2
                             rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
                 Button:
+                    text: "Load"
+                    size_hint: .66, .065
+                    pos_hint: {"center_x": .5, "center_y": .45}
+                    background_color: 0, 0, 0, 0
+                    front_name: "BPoppins"
+                    color: rgba(52, 0, 231, 255)
+                    on_release:
+                        app.load_all()
+                    canvas.before:
+                        Color:
+                            rgb: rgba(52, 0, 231, 255)
+                        Line:
+                            width: 1.2
+                            rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+                Button:
                     text: "My ID"
                     size_hint: .66, .065
                     pos_hint: {"center_x": .5, "center_y": .15}
@@ -2223,6 +2238,113 @@ MDScreen:
 
 
 """
+all_load = """
+<LoadRes>
+    size_hint_y: None
+    pos_hint: {"x": .02}
+    #height: self.texture_size[1]
+    padding: 12, 10
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1, 1)
+        RoundedRectangle:
+            size: self.width, self.height
+            pos: self.pos
+            radius: [23, 23, 23, 0]
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 0
+        Label:
+            text: root.fro
+            font_size: 12
+            color: (0, 0, 1, 1)
+            halign: 'left'
+            size_hint_x: .22
+        MDLabel:
+            text: root.text
+            font_size: 12
+            halign: "center"
+MDScreen:
+    name: "all_load"
+    group_list: group_list
+    butt: butt
+    group_num: group_num
+
+    MDLabel:
+        text: "ENCOCHAT"
+        font_name: "BPoppins"
+        font_size: "26sp"
+        pos_hint: {"center_x": .8, "center_y": .9}
+        color: rgba(0, 0, 59, 255)
+
+    MDIconButton:
+        icon: "arrow-left"
+        pos_hint: {"center_y": .95}
+        user_font_size: "30sp"
+        theme_text_color: "Custom"
+        text_color: rgba(26, 24, 58, 255)
+        on_release:
+            root.manager.transition.direction = "right"
+            root.manager.current = "home"
+
+    ScrollView:
+        size_hint_y: .6
+        pos_hint: {"x": 0, "y": .116}
+        do_scroll_x: False
+        do_scroll_y: True
+        BoxLayout:
+            id: group_list
+            orientation: "vertical"
+            size: (root.width, root.height)
+            height: self.minimum_height
+            size_hint: None, None
+            pso_hint: {"top": 10}
+            cols: 1
+            spacing: 5
+            size_hint_y: None
+            pos_hint: {"x": .02}
+            padding: 12, 10
+
+    MDFloatLayout:
+        md_bg_color: 245/255, 245/255, 245/255, 1
+        size_hint_y: .11
+        MDFloatLayout:
+            size_hint: .7, .60
+            pos_hint: {"center_x": .45, "center_y": .5}
+            canvas:
+                Color:
+                    rgb: (238/255, 238/255, 238/255, 1)
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [23, 23, 23, 23]
+            TextInput:
+                input_filter: "int"
+                id: group_num
+                hint_text: "Enter group number"
+                size_hint: 1, None
+                pos_hint: {"center_x": .5, "center_y": .5}
+                font_size: "12sp"
+                height: self.minimum_height
+                multiline: False
+                cursor_color: 1, 170/255, 23/255, 1
+                cursor_width: "2sp"
+                foreground_color: 1, 170/255, 23/255, 1
+                background_color: 0, 0, 0, 0
+                padding: 15
+                font_name: "BPoppins"
+        MDIconButton:
+            id: butt
+            icon: "send"
+            pos_hint: {"center_x": .91, "center_y": .5}
+            user_font_size: "18sp"
+            theme_text_color: "Custom"
+            text_color: 0, 0, 0, 1
+            #foreground_color: rgba(0, 0, 0, 1)
+            #md_bg_color: rgba(52, 0, 231, 255)
+            on_release:
+                app.chat_start_with(group_num.text)
+"""
 
 from kivy.utils import platform
 if platform == "android":
@@ -2231,7 +2353,7 @@ if platform == "android":
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
 
-# Window.size = (310, 580)
+Window.size = (310, 580)
 
 ######################### BASIC VARIABLES #########################
 group_key = ""
@@ -2251,6 +2373,8 @@ try:
     print("Using host, port:", HOST, PORT)
 except:
     HOST, PORT = None, None
+
+HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -2281,6 +2405,15 @@ class Command2(MDLabel):
 
 class Response2(MDLabel):
     text = StringProperty()
+    size_hint_x = NumericProperty()
+    halign = StringProperty()
+    font_name = "BPoppins"
+    font_size = 12
+
+
+class LoadRes(BoxLayout):
+    text = StringProperty()
+    fro = StringProperty()
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
@@ -2434,11 +2567,13 @@ class ChatApp(MDApp):
         self.super_dubba_key = ""
 
         self.aaa = None
+        self.l = []
 
         self.public_key = None
         self.private_key = None
 
         self.screen_manager = ScreenManager()
+
         self.screen_manager.add_widget(Builder.load_string(login))
         self.screen_manager.add_widget(Builder.load_string(home))
         self.screen_manager.add_widget(Builder.load_string(chat_private))
@@ -2458,6 +2593,7 @@ class ChatApp(MDApp):
         self.screen_manager.add_widget(Builder.load_string(show_qr2))
         self.screen_manager.add_widget(Builder.load_string(show_id))
         self.screen_manager.add_widget(Builder.load_string(chat))
+        self.screen_manager.add_widget(Builder.load_string(all_load))
 
         return self.screen_manager
 
@@ -2476,7 +2612,7 @@ class ChatApp(MDApp):
         try:
             self.connect()
             global user
-            self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {self.username}"
+            self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {username}"
             self.screen_manager.get_screen("signup").username.text = ""
             self.screen_manager.get_screen("signup").password.text = ""
             self.screen_manager.get_screen("signup").password2.text = ""
@@ -2537,7 +2673,7 @@ class ChatApp(MDApp):
             global user
             self.screen_manager.get_screen("login").username.text = ""
             self.screen_manager.get_screen("login").password.text = ""
-            # self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {self.username}"
+            self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {username}"
             try:
                 """
                 with open("data/username.txt", "r") as file:
@@ -2646,8 +2782,8 @@ class ChatApp(MDApp):
                 file.write(Encrypt(message_=new, key=new).encrypt().decode())
             """
             self.connect()
-            sock.send(f"CHANGE_PASSWORD:{self.password}:{new}:{self.username}".encode())
-            r = sock.recv(1024).decode()
+            self.sock.send(f"CHANGE_PASSWORD:{self.password}:{new}:{self.username}".encode())
+            r = self.sock.recv(1024).decode()
             if r == "success":
 
                 with open("groups.csv", "r") as file:
@@ -2712,6 +2848,12 @@ class ChatApp(MDApp):
                 current_private_key = key
                 current_chat_with = rec
                 """
+
+                if rec not in open("private_chats.csv", "r").read():
+                    with open("private_chats.csv", "a") as rec_file:
+                        rec_file.write(rec + "\n")
+                open("private_chats.csv", "r").close()
+
                 current_private_key = public_key
                 current_chat_with = rec
 
@@ -2763,60 +2905,57 @@ class ChatApp(MDApp):
             pass
 
     def receive_messages_private(self, _):
+        print("Personal private key:", self.private_key)
         try:
-            print("Personal private key:", self.private_key)
-            try:
-                with open(f"2/{current_chat_with}.txt", "r") as ii:
-                    aa = ii.read().split("\n")
-                for lo in aa:
-                    if lo != "\n" and lo != "":
-                        self.add(lo)
-                open(f"2/{current_chat_with}.txt", "w").close()
-            except:
-                pass
-            while True:
-                try:
-                    print("Chat with:", current_chat_with)
-                    message = self.sock.recv(1024)
-                    print(message)
-                    message = message.decode()
-                    print("Message received:", message)
-                    if message:
-                        if message == "NICK":
-                            self.sock.send(self.username.encode())
-                        elif message.split("#")[1].startswith(current_chat_with):
-                            m = self.sock.recv(1024)
-                            print("Shorted message:", m)
-                            print("Decrypted:", rr.decrypt(m, self.private_key))
-                            m = rr.decrypt(m, self.private_key).decode()
-                            # m = m[2:]
-                            # m = m[:-1]
-                            # print(m)
-                            # print(rr.decrypt(m.encode(), private).decode())
-                            # m = Decrypt(message_=m, key=key).decrypt()
-                            self.add(m)
-                        elif message.startswith(f"INCOMING:{self.username}#{self.id}"):
-                            print("OOOOOKAY")
-                            m = self.sock.recv(1024)
-                            m = rr.decrypt(m, self.private_key).decode()
-                            self.add(m)
-                        else:
-                            try:
-                                sender, mess = message.split("---")
-                                print("Decrypted message:", rr.decrypt(mess, self.private_key).decode())
-                                with open(f"2\\{sender}.txt", "a") as file:
-                                    file.write(mess+"\n")
-                                self.notify(f"New message from {sender}", mess)
-                            except:
-                                print("Invalid message received.")
-                                self.add(message)
-                    else:
-                        break
-                except Exception as e:
-                    print("Errorv3:", e)
-                    pass
+            with open(f"2/{current_chat_with}.txt", "r") as ii:
+                aa = ii.read().split("\n")
+            for lo in aa:
+                if lo != "\n" and lo != "":
+                    self.add(lo)
+            open(f"2/{current_chat_with}.txt", "w").close()
         except:
             pass
+        while True:
+            try:
+                print("Chat with:", current_chat_with)
+                message = self.sock.recv(1024)
+                print(message)
+                message = message.decode()
+                print("Message received:", message)
+                if message:
+                    if message == "NICK":
+                        self.sock.send(self.username.encode())
+                    elif message.split("#")[1].startswith(current_chat_with):
+                        m = self.sock.recv(1024)
+                        print("Shorted message:", m)
+                        print("Decrypted:", rr.decrypt(m, self.private_key))
+                        m = rr.decrypt(m, self.private_key).decode()
+                        # m = m[2:]
+                        # m = m[:-1]
+                        # print(m)
+                        # print(rr.decrypt(m.encode(), private).decode())
+                        # m = Decrypt(message_=m, key=key).decrypt()
+                        self.add(m)
+                    elif message.startswith(f"INCOMING:{self.username}#{self.id}"):
+                        print("OOOOOKAY")
+                        m = self.sock.recv(1024)
+                        m = rr.decrypt(m, self.private_key).decode()
+                        self.add(m)
+                    else:
+                        try:
+                            sender, mess = message.split("---")
+                            print("Decrypted message:", rr.decrypt(mess, self.private_key).decode())
+                            with open(f"2\\{sender}.txt", "a") as file:
+                                file.write(mess + "\n")
+                            self.notify(f"New message from {sender}", mess)
+                        except:
+                            print("Invalid message received.")
+                            self.add(message)
+                else:
+                    break
+            except Exception as e:
+                print("Errorv3:", e)
+                continue
 
     def load_groups(self):
         try:
@@ -2874,23 +3013,28 @@ class ChatApp(MDApp):
             self.show_toaster("Error occured while showing groups.")
 
     def join_group(self, group_id):
-        if group_id != "":
-            group_id = int(group_id)
-            if self.super_dubba_key != "":
-                self.screen_manager.get_screen("chat").chat_list.clear_widgets()
-                global group_key, sock, is_it_my_turn
-                is_it_my_turn = True
+        try:
+            if group_id != "":
+                group_id = int(group_id)
+                if self.super_dubba_key != "":
+                    self.screen_manager.get_screen("chat").chat_list.clear_widgets()
+                    global group_key, sock, is_it_my_turn
+                    is_it_my_turn = True
 
-                self.connect()
-
-                key = self.rooms[group_id]
-                name = key.split("|")[0]
-                self.screen_manager.get_screen("chat").kkk.text = key
-                self.screen_manager.get_screen("chat").bot_name.text = name
-                group_key = key
-                self.screen_manager.current = "chat"
-            else:
-                self.screen_manager.current = "login"
+                    key = self.rooms[group_id]
+                    name = key.split("|")[0]
+                    group_id = key.split("|")[2]
+                    self.screen_manager.get_screen("chat").kkk.text = key
+                    self.screen_manager.get_screen("chat").bot_name.text = name
+                    group_key = key
+                    self.connect()
+                    self.sock.send(("ID::::::" + "|||" + self.username + "|||" + group_id).encode())
+                    threading.Thread(target=self.receive_messages).start()
+                    self.screen_manager.current = "chat"
+                else:
+                    self.screen_manager.current = "login"
+        except:
+            self.show_toaster("Please load the groups first.")
 
     def join_new_group(self, key):
         if key != "":
@@ -2899,9 +3043,8 @@ class ChatApp(MDApp):
                 global group_key, sock, is_it_my_turn
                 is_it_my_turn = True
 
-                self.connect()
-
                 name = key.split("|")[0]
+                group_id = key.split("|")[2]
                 self.screen_manager.get_screen("chat").kkk.text = key
                 self.screen_manager.get_screen("chat").bot_name.text = name
                 group_key = key
@@ -2911,6 +3054,10 @@ class ChatApp(MDApp):
                 if enc_key not in aa:
                     with open("groups.csv", "a") as file:
                         file.write(f"{enc_key}\n")
+
+                self.connect()
+                self.sock.send(("ID::::::" + "|||" + self.username + "|||" + group_id).encode())
+                threading.Thread(target=self.receive_messages).start()
                 self.screen_manager.current = "chat"
             else:
                 self.screen_manager.current = "login"
@@ -2949,6 +3096,26 @@ class ChatApp(MDApp):
                 self.screen_manager.current = "chat"
         except:
             self.show_toaster("Couldn't create group.")
+
+    def load_all(self):
+        self.screen_manager.current = "all_load"
+        print("okay")
+        self.screen_manager.get_screen("all_load").group_list.clear_widgets()
+        with open("private_chats.csv") as priv:
+            a = priv.read().split("\n")
+        self.l = []
+        for item in a:
+            if item != "":
+                if item not in self.l:
+                    self.l.append(item)
+
+        for i, item in enumerate(self.l):
+            self.screen_manager.get_screen("all_load").group_list.add_widget(
+                LoadRes(text=f"{i+1})-{item}", size_hint_x=.75))
+
+    def chat_start_with(self, nnum):
+        rec = self.l[int(nnum)-1]
+        self.create_chat(rec)
 
     @mainthread
     def send_message_aaa(self, message, _):
@@ -2990,9 +3157,11 @@ class ChatApp(MDApp):
         while True:
             try:
                 message = self.sock.recv(1024).decode()
+                print(message)
                 try:
                     sender = message.split(": ")[0]
                     message = Decrypt(message_=message.split(": ")[1], key=group_key).decrypt()
+                    print(message)
                 except:
                     sender = None
                     pass
@@ -3041,7 +3210,7 @@ class ChatApp(MDApp):
                 continue
 
     @mainthread
-    def add2(self, message, _):
+    def add2(self, message, fro):
         try:
             global size, halign, value
             if message != "":
@@ -3074,49 +3243,46 @@ class ChatApp(MDApp):
 
     @mainthread
     def send_message_private(self, message, _):
-        try:
-            print("Public key of partner loaded:", self.aaa)
-            # sock.send(("/pm " + current_chat_with + " " + Encrypt(message_=message, key=key).encrypt().decode()).encode())
-            enc = rr.encrypt(message.encode(), self.aaa)
-            print("Encrypted message:", enc)
-            self.sock.send(f"/pm {current_chat_with}".encode())
-            print("First sent")
-            self.sock.send(enc)
-            print("Second sent")
-            # sock.send(("/pm " + current_chat_with + " " + message).encode())
-            # sock.send(f"/pm {current_chat_with} {rr.encrypt(message.encode(), key)}".encode())
+        print("Public key of partner loaded:", self.aaa)
+        # sock.send(("/pm " + current_chat_with + " " + Encrypt(message_=message, key=key).encrypt().decode()).encode())
+        enc = rr.encrypt(message.encode(), self.aaa)
+        print("Encrypted message:", enc)
+        self.sock.send(f"/pm {current_chat_with}".encode())
+        print("First sent")
+        self.sock.send(enc)
+        print("Second sent")
+        # sock.send(("/pm " + current_chat_with + " " + message).encode())
+        # sock.send(f"/pm {current_chat_with} {rr.encrypt(message.encode(), key)}".encode())
 
-            global size, halign, value
-            if message != "":
-                value = message
-                if len(value) < 6:
-                    size = .22
-                    halign = "center"
-                elif len(value) < 6:
-                    size = .22
-                    halign = "center"
-                elif len(value) < 11:
-                    size = .32
-                    halign = "center"
-                elif len(value) < 16:
-                    size = .45
-                    halign = "center"
-                elif len(value) < 21:
-                    size = .58
-                    halign = "center"
-                elif len(value) < 26:
-                    size = .71
-                    halign = "center"
-                else:
-                    size = .7
-                    halign = "left"
+        global size, halign, value
+        if message != "":
+            value = message
+            if len(value) < 6:
+                size = .22
+                halign = "center"
+            elif len(value) < 6:
+                size = .22
+                halign = "center"
+            elif len(value) < 11:
+                size = .32
+                halign = "center"
+            elif len(value) < 16:
+                size = .45
+                halign = "center"
+            elif len(value) < 21:
+                size = .58
+                halign = "center"
+            elif len(value) < 26:
+                size = .71
+                halign = "center"
+            else:
+                size = .7
+                halign = "left"
 
-            self.screen_manager.get_screen("chat_sec").chat_list.add_widget(
-                Command2(text=message, size_hint_x=size, halign=halign))
+        self.screen_manager.get_screen("chat_sec").chat_list.add_widget(
+            Command2(text=message, size_hint_x=size, halign=halign))
 
-            self.screen_manager.get_screen("chat_sec").text_input.text = ""
-        except:
-            self.show_toaster("Couldn't send message.")
+        self.screen_manager.get_screen("chat_sec").text_input.text = ""
 
     def file_chooser(self, key):
         try:
@@ -3245,3 +3411,6 @@ if __name__ == "__main__":
     LabelBase.register(name="BPoppins",
                        fn_regular="Poppins-SemiBold.ttf")
     ChatApp().run()
+
+# d328dbab-a04c-4301-a4cc-8e50f57911fc
+# 4d1063cd-205b-4b1e-8cdf-05d9d57ca404
