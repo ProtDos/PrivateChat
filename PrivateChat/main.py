@@ -2353,7 +2353,7 @@ if platform == "android":
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
 
-Window.size = (310, 580)
+# Window.size = (310, 580)
 
 ######################### BASIC VARIABLES #########################
 group_key = ""
@@ -2374,7 +2374,7 @@ try:
 except:
     HOST, PORT = None, None
 
-HOST, PORT = "localhost", 5000
+# HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
