@@ -281,7 +281,7 @@ def send_message(idd, message, p, buf=True):
             print(idd)
             recipient_socket.send(f"INCOMING:{p}|||".encode())
             print("waiting")
-            time.sleep(0.5)
+            time.sleep(1)
             recipient_socket.send(message)
         except:
             buffer.append({"from": idd, "to": p, "mess": message})
@@ -292,6 +292,8 @@ def send_message(idd, message, p, buf=True):
             recipient_socket = clients__pr[idd]
             print(idd)
             recipient_socket.send(f"{p}---".encode())
+            print("waiting x2")
+            time.sleep(1)
             recipient_socket.send(message)
         except Exception as e:
             print(e)
