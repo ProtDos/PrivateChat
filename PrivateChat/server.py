@@ -397,6 +397,17 @@ def fuck_around(client, address):
             else:
                 print("nah")
                 client.send(b"error")
+        elif xxx.startswith("GET_USERNAME:"):
+            idd = xxx.split(":")[1]
+            if check_id_exist(idd):
+                aa = get_username(idd)
+                if aa:
+                    client.send(aa.encode())
+                else:
+                    client.send(b"error")
+            else:
+                print("nah")
+                client.send(b"error")
         else:
             if xxx.startswith("ID:::::"):
                 _, nickname, group_id = xxx.split("|||")

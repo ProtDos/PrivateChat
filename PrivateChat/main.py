@@ -2601,7 +2601,8 @@ class ChatApp(MDApp):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((HOST, PORT))
-        except:
+        except Exception as e:
+            print("Error:", e)
             self.screen_manager.current_screen = "main"
             self.show_toaster("Couldn't connect to server. Check connection. ")
 
@@ -2767,9 +2768,11 @@ class ChatApp(MDApp):
                         self.show_toaster("Error changing username.")
                 else:
                     self.show_toaster("Please enter an username.")
-            except:
+            except Exception as e:
+                print("Error:", e)
                 self.show_toaster("Error changing username.")
-        except:
+        except Exception as e:
+            print("Error:", e)
             self.show_toaster("Error changing username.")
 
     def change_password(self, new):
@@ -2819,7 +2822,8 @@ class ChatApp(MDApp):
                 self.show_toaster("Password has been changed.")
             else:
                 self.show_toaster("Error changing password.")
-        except:
+        except Exception as e:
+            print("Error:", e)
             self.show_toaster("Error changing password.")
 
     def create_chat(self, rec):
@@ -2838,21 +2842,39 @@ class ChatApp(MDApp):
                 self.aaa = public
 
                 self.connect()
+                self.sock.close()
+                self.connect()
+
+                self.sock.send(f"GET_USERNAME:{rec}".encode())
+                name = self.sock.recv(1024).decode()
+                if name == "error":
+                    self.screen_manager.current = "home"
+                    self.show_toaster("Invalid key.")
+                    return
+
+                self.connect()
+                self.sock.close()
+                self.connect()
 
                 self.sock.send("PRIV:".encode())
                 self.sock.send(personal.encode())
-                name = "b"
                 """
                 open(f"2\\{rec}.txt", 'w').close()
                 key = gen(100)
                 current_private_key = key
                 current_chat_with = rec
                 """
-
-                if rec not in open("private_chats.csv", "r").read():
+                try:
+                    if rec not in open("private_chats.csv", "r").read():
+                        with open("private_chats.csv", "a") as rec_file:
+                            rec_file.write(rec + "\n")
+                    open("private_chats.csv", "r").close()
+                except:
+                    open("private_chats.csv", "w").close()
                     with open("private_chats.csv", "a") as rec_file:
                         rec_file.write(rec + "\n")
-                open("private_chats.csv", "r").close()
+                    open("private_chats.csv", "r").close()
+                open(f"{rec}.txt", "w").close()
 
                 current_private_key = public_key
                 current_chat_with = rec
@@ -2870,7 +2892,8 @@ class ChatApp(MDApp):
                 # self.show_toaster("Created!")
             else:
                 self.show_toaster("Invalid recipient.")
-        except:
+        except Exception as e:
+            print("Error:", e)
             self.show_toaster("Couldn't create chat.")
 
     @mainthread
@@ -2901,19 +2924,22 @@ class ChatApp(MDApp):
                     size = .7
                     halign = "left"
             self.screen_manager.get_screen("chat_sec").chat_list.add_widget(Response2(text=message, size_hint_x=size, halign=halign))
-        except:
+        except Exception as e:
+            print("Error:", e)
             pass
 
     def receive_messages_private(self, _):
         print("Personal private key:", self.private_key)
         try:
-            with open(f"2/{current_chat_with}.txt", "r") as ii:
+            with open(f"{current_chat_with}.txt", "r") as ii:
                 aa = ii.read().split("\n")
             for lo in aa:
                 if lo != "\n" and lo != "":
                     self.add(lo)
-            open(f"2/{current_chat_with}.txt", "w").close()
-        except:
+            open(f"{current_chat_with}.txt", "w").close()
+        except Exception as e:
+            open(f"{current_chat_with}.txt", "w").close()
+            print("Error:", e)
             pass
         while True:
             try:
@@ -2945,7 +2971,7 @@ class ChatApp(MDApp):
                         try:
                             sender, mess = message.split("---")
                             print("Decrypted message:", rr.decrypt(mess, self.private_key).decode())
-                            with open(f"2\\{sender}.txt", "a") as file:
+                            with open(f"{sender}.txt", "a") as file:
                                 file.write(mess + "\n")
                             self.notify(f"New message from {sender}", mess)
                         except:
@@ -2986,7 +3012,9 @@ class ChatApp(MDApp):
                     except:
                         c -= 1
                         pass
-            except:
+
+            except Exception as e:
+                print("Error:", e)
                 pass
 
             print(c)
@@ -3009,7 +3037,8 @@ class ChatApp(MDApp):
                 self.screen_manager.get_screen("group_join").group_num.disabled = True
                 self.screen_manager.get_screen("group_join").butt.disabled = True
                 self.screen_manager.get_screen("group_join").butt.hint_text = "Not available"
-        except:
+        except Exception as e:
+            print("Error:", e)
             self.show_toaster("Error occured while showing groups.")
 
     def join_group(self, group_id):
@@ -3033,7 +3062,8 @@ class ChatApp(MDApp):
                     self.screen_manager.current = "chat"
                 else:
                     self.screen_manager.current = "login"
-        except:
+        except Exception as e:
+            print("Error:", e)
             self.show_toaster("Please load the groups first.")
 
     def join_new_group(self, key):
@@ -3094,7 +3124,8 @@ class ChatApp(MDApp):
                 threading.Thread(target=self.receive_messages).start()
 
                 self.screen_manager.current = "chat"
-        except:
+        except Exception as e:
+            print("Error:", e)
             self.show_toaster("Couldn't create group.")
 
     def load_all(self):
@@ -3150,7 +3181,8 @@ class ChatApp(MDApp):
                     Command(text=message, size_hint_x=size, halign=halign))
 
                 self.screen_manager.get_screen("chat").text_input.text = ""
-        except:
+        except Exception as e:
+            print("Error:", e)
             self.show_toaster("Couldn't send message.")
 
     def receive_messages(self):
@@ -3238,7 +3270,8 @@ class ChatApp(MDApp):
                     halign = "left"
             self.screen_manager.get_screen("chat").chat_list.add_widget(
                 Response(text=message, size_hint_x=size, halign=halign))
-        except:
+        except Exception as e:
+            print("Error:", e)
             pass
 
     @mainthread
@@ -3327,7 +3360,8 @@ class ChatApp(MDApp):
 
                 self.screen_manager.get_screen("chat").chat_list.add_widget(
                     Command(text=filename, size_hint_x=.75, halign="center"))
-        except:
+        except Exception as e:
+            print("Error:", e)
             self.show_toaster("Couldn't send file.")
 
     def delete_everything(self):
@@ -3371,10 +3405,9 @@ class ChatApp(MDApp):
             else:
                 self.show_toaster("Error deleting data.")
 
-        except:
+        except Exception as e:
+            print("Error:", e)
             pass
-
-
         return
 
     def show_toaster(self, message):
@@ -3401,7 +3434,8 @@ class ChatApp(MDApp):
             self.screen_manager.get_screen("show_id").img.reload()
 
             self.screen_manager.current = "show_id"
-        except:
+        except Exception as e:
+            print("Error:", e)
             pass
 
 
@@ -3412,5 +3446,5 @@ if __name__ == "__main__":
                        fn_regular="Poppins-SemiBold.ttf")
     ChatApp().run()
 
-# d328dbab-a04c-4301-a4cc-8e50f57911fc
-# 4d1063cd-205b-4b1e-8cdf-05d9d57ca404
+# a503c1ff-69c4-4789-bca9-94366a3d90f5
+# 65188ad1-ff97-4e6f-902d-be7c29d8791b
