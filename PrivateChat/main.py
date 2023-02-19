@@ -49,6 +49,8 @@ MDScreen:
     name: "login"
     username: username
     password: password
+    password_text: password_text
+    
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -113,6 +115,20 @@ MDScreen:
                 pos_hint: {"center_x": .45, "center_y": 0}
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
+                
+        MDCheckbox:
+            size_hint: None, None
+            size: "48dp", "48dp"
+            pos_hint: {"center_x": .15, "center_y": .43}
+            on_active: app.show_password(*args)
+        MDLabel:
+            id: password_text
+            font_name: "MPoppins"
+            text: "Show Password"
+            font_size: "11sp"
+            color: rgba(0, 0, 59, 255)
+            foreground_color: rgba(0, 0, 59, 255)
+            pos_hint: {"center_x": .7, "center_y": .43}
 
         Button:
             text: "LOGIN"
@@ -1580,6 +1596,8 @@ MDScreen:
     username: username
     password: password
     password2: password2
+    password_text: password_text
+    
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -1666,10 +1684,25 @@ MDScreen:
                 pos_hint: {"center_x": .45, "center_y": 0}
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
+        
+        MDCheckbox:
+            size_hint: None, None
+            size: "48dp", "48dp"
+            pos_hint: {"center_x": .15, "center_y": .37}
+            on_active: app.show_password_sign(*args)
+        MDLabel:
+            id: password_text
+            font_name: "MPoppins"
+            text: "Show Password"
+            font_size: "12sp"
+            color: rgba(0, 0, 59, 255)
+            foreground_color: rgba(0, 0, 59, 255)
+            pos_hint: {"center_x": .7, "center_y": .37}
+        
         Button:
             text: "SIGN UP"
             size_hint: .66, .065
-            pos_hint: {"center_x": .5, "center_y": .34}
+            pos_hint: {"center_x": .5, "center_y": .30}
             background_color: 0, 0, 0, 0
             front_name: "BPoppins"
             canvas.before:
@@ -1683,7 +1716,7 @@ MDScreen:
                 app.sign_up(username.text, password.text, password2.text)
         MDTextButton:
             text: "Forgot Password?"
-            pos_hint: {"center_x": .5, "center_y": .28}
+            pos_hint: {"center_x": .5, "center_y": .24}
             color: rgba(68, 78, 132, 255)
             font_size: "12sp"
             font_name: "BPoppins"
@@ -1691,13 +1724,13 @@ MDScreen:
             text: "Already have an account?"
             font_name: "BPoppins"
             font_size: "11sp"
-            pos_hint: {"center_x": .68, "center_y": .2}
+            pos_hint: {"center_x": .68, "center_y": .16}
             color: rgba(135, 133, 193, 255)
         MDTextButton:
             text: "Login"
             font_name: "BPoppins"
             font_size: "11sp"
-            pos_hint: {"center_x": .79, "center_y": .2}
+            pos_hint: {"center_x": .79, "center_y": .16}
             color: rgba(135, 133, 193, 255)
             on_release:
                 root.manager.transition.direction = "left"
@@ -2047,7 +2080,7 @@ chat = """
         Color:
             rgb: rgba(52, 0, 234, 255)
         RoundedRectangle:
-            size: self.width, self.height
+            size: self.width + 5, self.height + 5
             pos: self.pos
             radius: [23, 23, 0, 23]
     on_touch_down:
@@ -2061,7 +2094,7 @@ chat = """
         Color:
             rgb: (1, 1, 1, 1)
         RoundedRectangle:
-            size: self.width, self.height
+            size: self.width + 5, self.height + 5
             pos: self.pos
             radius: [23, 23, 23, 0]
     BoxLayout:
@@ -2354,6 +2387,8 @@ if platform == "android":
 
 
 # Window.size = (310, 580)
+Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
+Window.softinput_mode = "below_target"
 
 ######################### BASIC VARIABLES #########################
 group_key = ""
@@ -2374,7 +2409,7 @@ try:
 except:
     HOST, PORT = None, None
 
-# HOST, PORT = "localhost", 5000
+HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -3147,6 +3182,24 @@ class ChatApp(MDApp):
     def chat_start_with(self, nnum):
         rec = self.l[int(nnum)-1]
         self.create_chat(rec)
+
+    def show_password(self, _, value_):
+        if value_:
+            self.screen_manager.get_screen("login").password.password = False
+            self.screen_manager.get_screen("login").password_text.text = "Hide Password"
+        else:
+            self.screen_manager.get_screen("login").password.password = True
+            self.screen_manager.get_screen("login").password_text.text = "Show Password"
+
+    def show_password_sign(self, _, value_):
+        if value_:
+            self.screen_manager.get_screen("signup").password.password = False
+            self.screen_manager.get_screen("signup").password2.password = False
+            self.screen_manager.get_screen("signup").password_text.text = "Hide Password"
+        else:
+            self.screen_manager.get_screen("signup").password.password = True
+            self.screen_manager.get_screen("signup").password2.password = True
+            self.screen_manager.get_screen("signup").password_text.text = "Show Password"
 
     @mainthread
     def send_message_aaa(self, message, _):
