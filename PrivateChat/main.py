@@ -547,7 +547,7 @@ chat_sec = """
         Color:
             rgb: rgba(52, 0, 234, 255)
         RoundedRectangle:
-            size: self.width, self.height
+            size: self.width + 20, self.height + 20
             pos: self.pos
             radius: [23, 23, 0, 23]
     on_touch_down:
@@ -563,7 +563,7 @@ chat_sec = """
         Color:
             rgb: (1, 1, 1, 1)
         RoundedRectangle:
-            size: self.width, self.height
+            size: self.width + 20, self.height + 20
             pos: self.pos
             radius: [23, 23, 23, 0]
 MDScreen:
@@ -2080,7 +2080,7 @@ chat = """
         Color:
             rgb: rgba(52, 0, 234, 255)
         RoundedRectangle:
-            size: self.width + 5, self.height + 5
+            size: self.width + 20, self.height + 20
             pos: self.pos
             radius: [23, 23, 0, 23]
     on_touch_down:
@@ -2094,7 +2094,7 @@ chat = """
         Color:
             rgb: (1, 1, 1, 1)
         RoundedRectangle:
-            size: self.width + 5, self.height + 5
+            size: self.width + 20, self.height + 20
             pos: self.pos
             radius: [23, 23, 23, 0]
     BoxLayout:
@@ -2409,7 +2409,7 @@ try:
 except:
     HOST, PORT = None, None
 
-HOST, PORT = "localhost", 5000
+# HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
