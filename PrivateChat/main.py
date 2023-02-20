@@ -540,14 +540,14 @@ chat_sec = """
 <Command2>
     size_hint_y: None
     pos_hint: {"right": .98}
-    height: self.texture_size[1]
+    height: self.texture_size[1] + 20
     padding: 12, 10
     theme_text_color: "Custom"
     canvas.before:
         Color:
             rgb: rgba(52, 0, 234, 255)
         RoundedRectangle:
-            size: self.width + 20, self.height + 20
+            size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 0, 23]
     on_touch_down:
@@ -563,7 +563,7 @@ chat_sec = """
         Color:
             rgb: (1, 1, 1, 1)
         RoundedRectangle:
-            size: self.width + 20, self.height + 20
+            size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
 MDScreen:
@@ -2080,7 +2080,7 @@ chat = """
         Color:
             rgb: rgba(52, 0, 234, 255)
         RoundedRectangle:
-            size: self.width + 20, self.height + 20
+            size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 0, 23]
     on_touch_down:
@@ -2094,7 +2094,7 @@ chat = """
         Color:
             rgb: (1, 1, 1, 1)
         RoundedRectangle:
-            size: self.width + 20, self.height + 20
+            size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
     BoxLayout:
@@ -2387,6 +2387,7 @@ if platform == "android":
 
 
 # Window.size = (310, 580)
+
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
 
@@ -2418,7 +2419,7 @@ class Command(MDLabel):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 12
+    font_size = 16
 
 
 class Response(BoxLayout):
@@ -2427,7 +2428,7 @@ class Response(BoxLayout):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 12
+    font_size = 16
 
 
 class Command2(MDLabel):
@@ -2435,7 +2436,7 @@ class Command2(MDLabel):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 12
+    font_size = 16
 
 
 class Response2(MDLabel):
@@ -2443,7 +2444,7 @@ class Response2(MDLabel):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 12
+    font_size = 16
 
 
 class LoadRes(BoxLayout):
