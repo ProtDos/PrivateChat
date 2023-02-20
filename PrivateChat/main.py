@@ -2386,7 +2386,7 @@ if platform == "android":
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
 
-# Window.size = (310, 580)
+Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -2410,7 +2410,7 @@ try:
 except:
     HOST, PORT = None, None
 
-# HOST, PORT = "localhost", 5000
+HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -2419,7 +2419,7 @@ class Command(MDLabel):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 16
+    font_size = 25
 
 
 class Response(BoxLayout):
@@ -2428,7 +2428,7 @@ class Response(BoxLayout):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 16
+    font_size = 25
 
 
 class Command2(MDLabel):
@@ -2436,7 +2436,7 @@ class Command2(MDLabel):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 16
+    font_size = 25
 
 
 class Response2(MDLabel):
@@ -2444,7 +2444,7 @@ class Response2(MDLabel):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 16
+    font_size = 25
 
 
 class LoadRes(BoxLayout):
@@ -2959,7 +2959,7 @@ class ChatApp(MDApp):
                 else:
                     size = .7
                     halign = "left"
-            self.screen_manager.get_screen("chat_sec").chat_list.add_widget(Response2(text=message, size_hint_x=size, halign=halign))
+            self.screen_manager.get_screen("chat_sec").chat_list.add_widget(Response2(text=message, size_hint_x=size+.3, halign=halign))
         except Exception as e:
             print("Error:", e)
             pass
@@ -3232,7 +3232,7 @@ class ChatApp(MDApp):
                     halign = "left"
 
                 self.screen_manager.get_screen("chat").chat_list.add_widget(
-                    Command(text=message, size_hint_x=size, halign=halign))
+                    Command(text=message, size_hint_x=size+.3, halign=halign))
 
                 self.screen_manager.get_screen("chat").text_input.text = ""
         except Exception as e:
@@ -3323,7 +3323,7 @@ class ChatApp(MDApp):
                     size = .7
                     halign = "left"
             self.screen_manager.get_screen("chat").chat_list.add_widget(
-                Response(text=message, size_hint_x=size, halign=halign))
+                Response(text=message, size_hint_x=size+.3, halign=halign))
         except Exception as e:
             print("Error:", e)
             pass
@@ -3367,7 +3367,7 @@ class ChatApp(MDApp):
                 halign = "left"
 
         self.screen_manager.get_screen("chat_sec").chat_list.add_widget(
-            Command2(text=message, size_hint_x=size, halign=halign))
+            Command2(text=message, size_hint_x=size+.3, halign=halign))
 
         self.screen_manager.get_screen("chat_sec").text_input.text = ""
 
