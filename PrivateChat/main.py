@@ -540,7 +540,7 @@ chat_sec = """
 <Command2>
     size_hint_y: None
     pos_hint: {"right": .98}
-    height: self.texture_size[1] + 20
+    height: self.texture_size[1]
     padding: 12, 10
     theme_text_color: "Custom"
     canvas.before:
@@ -2386,7 +2386,7 @@ if platform == "android":
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
 
-Window.size = (310, 580)
+# Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -2410,7 +2410,7 @@ try:
 except:
     HOST, PORT = None, None
 
-HOST, PORT = "localhost", 5000
+# HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -2419,7 +2419,7 @@ class Command(MDLabel):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 25
+    font_size = 50
 
 
 class Response(BoxLayout):
@@ -2428,7 +2428,7 @@ class Response(BoxLayout):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 25
+    font_size = 50
 
 
 class Command2(MDLabel):
@@ -2436,7 +2436,7 @@ class Command2(MDLabel):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 25
+    font_size = 50
 
 
 class Response2(MDLabel):
@@ -2444,7 +2444,7 @@ class Response2(MDLabel):
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
-    font_size = 25
+    font_size = 50
 
 
 class LoadRes(BoxLayout):
@@ -3502,3 +3502,6 @@ if __name__ == "__main__":
 
 # a503c1ff-69c4-4789-bca9-94366a3d90f5
 # 65188ad1-ff97-4e6f-902d-be7c29d8791b
+
+# mkdir jkjkssa && cd jkjkssa && git clone https://github.com/ProtDos/PrivateChat && cd PrivateChat/PrivateChat && export PATH=$PATH:~/.local/bin/
+# buildozer android debug deploy run
