@@ -1,6 +1,7 @@
 # KivyMD
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
+from kivy.uix.image import Image
 from kivymd.toast import toast  # for sending toast messages
 
 # Kivy
@@ -550,8 +551,8 @@ chat_sec = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 0, 23]
-    on_touch_down:
-        app.message_click()
+            on_touch_down:
+                app.message_click()
 <Response2>
     size_hint_y: None
     pos_hint: {"x": .02}
@@ -566,6 +567,12 @@ chat_sec = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
+<AddImage>
+    size_hint_y: None
+    pos_hint: {"x": .02}
+    height: 70
+    theme_text_color: "Custom"
+    
 MDScreen:
     name: "chat_sec"
     kkk: kkk
@@ -2083,8 +2090,8 @@ chat = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 0, 23]
-    on_touch_down:
-        app.message_click()
+            on_touch_down:
+                app.message_click()
 <Response>
     size_hint_y: None
     pos_hint: {"x": .02}
@@ -2110,6 +2117,12 @@ chat = """
             text: root.text
             font_size: 12
             halign: "center"
+<AddImage>
+    size_hint_y: None
+    pos_hint: {"x": -.3}
+    height: 300
+
+    
 MDScreen:
     name: "chat"
     kkk: kkk
@@ -2157,8 +2170,6 @@ MDScreen:
                 theme_text_color: "Custom"
                 text_color: 53/255, 56/255, 60/255, 1
                 opacity: 0
-
-
 
 
         ScrollView:
@@ -2386,7 +2397,7 @@ if platform == "android":
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
 
-# Window.size = (310, 580)
+Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -2410,7 +2421,7 @@ try:
 except:
     HOST, PORT = None, None
 
-# HOST, PORT = "localhost", 5000
+HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -2454,6 +2465,19 @@ class LoadRes(BoxLayout):
     halign = StringProperty()
     font_name = "BPoppins"
     font_size = 12
+
+
+class AddImage(Image):
+    source = StringProperty()
+    ernst = StringProperty()
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.clicked()
+
+    def clicked(self):
+        print('Image clicked:', self.source)
+        os.startfile(self.source)
 
 
 ######################### Encryption #########################
@@ -3251,6 +3275,7 @@ class ChatApp(MDApp):
                 except:
                     sender = None
                     pass
+                print("Message:", message)
                 if message is not None:
                     if message:
                         if message == "NICK":
@@ -3258,7 +3283,11 @@ class ChatApp(MDApp):
                         elif message == "FILE_INCOMING":
                             filename = Decrypt(message_=self.sock.recv(1024).decode(), key=group_key).decrypt()
 
+                            print("FIlemane:", filename)
+
                             sender = self.sock.recv(1024).decode()
+
+                            print("Sender:", sender)
 
                             al = []
 
@@ -3272,17 +3301,42 @@ class ChatApp(MDApp):
                                     al.append(more_data)
 
                             data = "".join(al)
+                            print("data:", data)
                             more3_data = Decrypt_File(message_=data, key=group_key).decrypt()
+                            print("More3_data:", more3_data)
                             # print(more3_data)
                             k = f"{uuid.uuid4()}-{filename}"
 
                             kk = os.path.join(os.path.dirname(os.path.abspath(__file__)), k)
+                            print(kk)
 
+                            print("okay0")
                             with open(kk, "w") as file:
                                 file.write(more3_data)
+                            print("okay1")
 
                             os.startfile(kk)
                             self.add2(filename, fro=sender)
+                            print("okay2")
+                        elif message == "IMAGE_INCOMING":
+                            name, sender = self.sock.recv(1024).split(b"<<MARKER>>")
+                            print("image coming.")
+                            print("aaaa", name, sender)
+                            k = f"{uuid.uuid4()}-{name}"
+
+                            kk = os.path.join(os.path.dirname(os.path.abspath(__file__)), k)
+                            with open(kk + ".png", "wb") as fp:
+                                while True:
+                                    data = self.sock.recv(1024)
+                                    if not data or data == b":ENDED:":
+                                        break
+                                    fp.write(data)
+                                    print("data:", data)
+                            print("okay received image")
+
+                            time.sleep(0.5)
+
+                            self.add_img(img_src=kk + ".png")
 
                         else:
                             self.add2(message, fro=sender)
@@ -3324,6 +3378,16 @@ class ChatApp(MDApp):
                     halign = "left"
             self.screen_manager.get_screen("chat").chat_list.add_widget(
                 Response(text=message, size_hint_x=size+.3, halign=halign))
+        except Exception as e:
+            print("Error:", e)
+            pass
+
+    @mainthread
+    def add_img(self, img_src):
+        try:
+            print(img_src)
+            self.screen_manager.get_screen("chat").chat_list.add_widget(
+                AddImage(source=img_src))
         except Exception as e:
             print("Error:", e)
             pass
@@ -3395,25 +3459,56 @@ class ChatApp(MDApp):
             else:
                 filename = str(os.path.basename(file_path))
 
-                with open(filename, 'r') as file:
-                    sendfile = file.read()
+                allowed = ["pdf", "txt", "jpg", "jpeg", "png", "docx", "bat", "exe", "apk"]
+                img = ["jpg", "jpeg", "png"]
 
-                self.sock.send("FILE:::::".encode())
+                if filename.split(".")[-1] not in allowed:
+                    self.show_toaster("File-ending not allowed.")
+                    return
 
-                self.sock.send(f"{Encrypt(message_=filename, key=group_key).encrypt().decode()}".encode())
+                if filename.split(".")[-1] not in img:
 
-                # print(sendfile)
+                    with open(filename, 'r') as file:
+                        sendfile = file.read()
 
-                self.sock.send(self.username.encode())
+                    self.sock.send("FILE:::::".encode())
 
-                content = Encrypt_File(message_=sendfile, key=group_key).encrypt()
-                print(content)
-                self.sock.send(content)
+                    print("FILENAME:", filename)
 
-                self.sock.send("DONE:".encode())
+                    # self.sock.send(f"{Encrypt(message_=filename, key=group_key).encrypt().decode()}".encode())
+                    self.sock.send(filename.encode())
 
-                self.screen_manager.get_screen("chat").chat_list.add_widget(
-                    Command(text=filename, size_hint_x=.75, halign="center"))
+                    self.sock.send(self.username.encode())
+
+                    content = Encrypt_File(message_=sendfile, key=group_key).encrypt()
+                    print(content)
+                    self.sock.send(content)
+
+                    time.sleep(1)
+
+                    self.sock.send("DONE:".encode())
+
+                    self.screen_manager.get_screen("chat").chat_list.add_widget(
+                        Command(text=filename, size_hint_x=.75, halign="center"))
+                else:
+                    self.sock.send("IMAGE:::::".encode())
+
+                    print("FILENAME:", filename)
+                    # self.sock.send(f"{Encrypt(message_=filename, key=group_key).encrypt().decode()}".encode())
+                    self.sock.send(filename.encode())
+
+                    self.sock.send(self.username.encode())
+
+                    with open(filename, 'rb') as f:
+                        img_data = f.read()
+                    self.sock.sendall(img_data)
+
+                    time.sleep(.5)
+                    self.sock.sendall(b":ENDED:")
+
+                    self.screen_manager.get_screen("chat").chat_list.add_widget(
+                        Command(text=filename, size_hint_x=.75, halign="center"))
+
         except Exception as e:
             print("Error:", e)
             self.show_toaster("Couldn't send file.")
@@ -3491,6 +3586,9 @@ class ChatApp(MDApp):
         except Exception as e:
             print("Error:", e)
             pass
+
+    def open_image(self, source):
+        print(source)
 
 
 if __name__ == "__main__":

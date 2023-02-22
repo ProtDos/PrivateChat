@@ -153,13 +153,60 @@ def broadcast_file(name, client, data, sender):
                     members.append(item["client"])
             print("sending file")
             for person in members:
-                if person != client:
-                    person.send("FILE_INCOMING".encode())
-                    time.sleep(.5)
+                # if person != client:
+                person.send("FILE_INCOMING".encode())
+                time.sleep(.5)
+                person.send(f"{name}".encode())
+                time.sleep(.5)
+                person.send(sender.encode())
+                person.send(data.encode())
+                person.send("DONE:::".encode())
+
+    except KeyboardInterrupt:
+        pass
+
+
+def broadcast_image(name, client, data, sender, final):
+    try:
+        if not final:
+            print("okayx2")
+            group_id = None
+            for item in dataset:
+                if item["client"] == client:
+                    group_id = item["group"]
+            if group_id is None:
+                print("User not in list")
+                pass
+            else:
+                members = []
+                for item in dataset:
+                    if item["group"] == group_id:
+                        members.append(item["client"])
+                print("sending image")
+                for person in members:
+                    # if person != client:
                     person.send(f"{name}".encode())
                     time.sleep(.5)
                     person.send(sender.encode())
-                    person.send(data.encode())
+                    time.sleep(.5)
+                    person.send(data)
+
+        else:
+            print("okayx3")
+            group_id = None
+            for item in dataset:
+                if item["client"] == client:
+                    group_id = item["group"]
+            if group_id is None:
+                print("User not in list")
+                pass
+            else:
+                members = []
+                for item in dataset:
+                    if item["group"] == group_id:
+                        members.append(item["client"])
+                print("sending final message")
+                for person in members:
                     person.send("DONE:::".encode())
 
     except KeyboardInterrupt:
@@ -197,6 +244,59 @@ def handle(client, g_id):
                 print("Data received.")
 
                 broadcast_file(name=filename, client=client, data=complete_data, sender=sender)
+            elif message.decode() == "IMAGE:::::":
+                pp = True
+                filename = client.recv(1024)
+                sender = client.recv(1024)
+
+                print("okay")
+                members = []
+                group_id = None
+                for item in dataset:
+                    if item["client"] == client:
+                        group_id = item["group"]
+                if group_id is None:
+                    print("User not in list")
+                    pass
+                else:
+                    members = []
+                    for item in dataset:
+                        if item["group"] == group_id:
+                            members.append(item["client"])
+                    print("sending file")
+
+                print(members)
+
+                for person in members:
+                    person.send(b"IMAGE_INCOMING")
+                    time.sleep(.5)
+                    print("sent first")
+                    person.send(filename + b"<<MARKER>>" + sender)
+                    time.sleep(.5)
+
+                while True:
+                    data = client.recv(1024)
+                    print("data:", data)
+                    if data == b":ENDED:":
+                        for person in members:
+                            person.send(b":ENDED:")
+                        break
+                    if not data:
+                        for person in members:
+                            person.send(b":ENDED:")
+                        break
+                    if data.endswith(b":ENDED:"):
+                        for person in members:
+                            person.sendall(data.split(b":ENDED:")[0])
+                            time.sleep(.5)
+                            person.sendall(b":ENDED:")
+                        break
+
+                    for person in members:
+                        person.sendall(data)
+                print("done")
+
+
             if not pp:
                 if message.decode() == "PRIV:":
                     print("okay")
@@ -231,6 +331,29 @@ def handle(client, g_id):
     exit("ok")
 
 
+def handle_client_while(client, p):
+    while True:
+        try:
+            request = client.recv(1024)
+            message = client.recv(1024)
+            print("Request: ", request)
+            print("Message:", message)
+            # print("P:", p)
+            request = request.decode()
+            if request.startswith("/pm"):
+                _, idd = request.split(" ")
+                send_message(idd, message, p, buf=False)
+            else:
+                print("Invalid.")
+                client.close()
+            clients__pr[p] = client
+
+        except Exception as e:
+            print(e)
+            print("client disconnected.")
+            # break
+
+
 def handle_client(client, _, oho):
     if oho == "True":
         p = client.recv(1024).decode()
@@ -247,23 +370,7 @@ def handle_client(client, _, oho):
             print("FROM:", item["from"])
             send_message(item["from"], item["mess"], p, buf=True)
             buffer.remove(item)
-    while True:
-        try:
-            request = client.recv(1024).decode()
-            message = client.recv(1024)
-            print(request)
-            print(message)
-            if request.startswith("/pm"):
-                _, idd = request.split(" ")
-                send_message(idd, message, p, buf=False)
-            else:
-                print("Invalid.")
-                client.close()
-            clients__pr[p] = client
-        except Exception as e:
-            print(e)
-            print("client disconnected.")
-            break
+    threading.Thread(target=handle_client_while, args=(client, p,)).start()
 
 
 def send_message(idd, message, p, buf=True):
