@@ -2688,7 +2688,8 @@ class ChatApp(MDApp):
                 self.screen_manager.current = "signup"
                 return
             uid = str(uuid.uuid4())
-            public, private = rr.newkeys(1024)
+            # public, private = rr.newkeys(1024)
+            public, private == rr.newkeys(4096)
             self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
             print("nah bruh")
             self.sock.send(public.save_pkcs1())
