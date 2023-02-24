@@ -242,6 +242,7 @@ def handle(client, g_id):
                     # print(more_data)
                 complete_data = "".join(al)
                 print("Data received.")
+                print(complete_data)
 
                 broadcast_file(name=filename, client=client, data=complete_data, sender=sender)
             elif message.decode() == "IMAGE:::::":
@@ -351,7 +352,7 @@ def handle_client_while(client, p):
         except Exception as e:
             print(e)
             print("client disconnected.")
-            # break
+            break
 
 
 def handle_client(client, _, oho):
