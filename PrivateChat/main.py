@@ -1,7 +1,7 @@
 # KivyMD
+import rsa
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
-from kivy.uix.image import Image
 from kivymd.toast import toast  # for sending toast messages
 
 # Kivy
@@ -12,6 +12,8 @@ from kivy.core.text import LabelBase
 from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, NumericProperty  # for chat screen, displaying speech bubbles
+from kivy.uix.image import Image
+from kivy.clock import Clock
 
 # Cryptography
 import base64  # For encrypting messages
@@ -21,6 +23,9 @@ from cryptography.hazmat.primitives import hashes  # For encrypting messages
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC  # For encrypting messages
 import rsa as rr
 import hashlib
+
+# Voice
+import pyaudio
 
 # Other
 import threading  # Threaded tasks
@@ -51,7 +56,7 @@ MDScreen:
     name: "login"
     username: username
     password: password
-    password_text: password_text
+    pws1: pws1
     
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
@@ -117,20 +122,15 @@ MDScreen:
                 pos_hint: {"center_x": .45, "center_y": 0}
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
-                
-        MDCheckbox:
-            size_hint: None, None
-            size: "48dp", "48dp"
-            pos_hint: {"center_x": .15, "center_y": .43}
-            on_active: app.show_password(*args)
-        MDLabel:
-            id: password_text
-            font_name: "MPoppins"
-            text: "Show Password"
-            font_size: "11sp"
-            color: rgba(0, 0, 59, 255)
-            foreground_color: rgba(0, 0, 59, 255)
-            pos_hint: {"center_x": .7, "center_y": .43}
+            MDIconButton:
+                id: pws1
+                icon: "eye"
+                color: 0, 0, 0, 0.4
+                text_color: 0, 0, 0, 0.4
+                theme_text_color: "Custom"
+                pos_hint: {"center_x": .85, "center_y": .5}
+                on_release:
+                    app.show_password()
 
         Button:
             text: "LOGIN"
@@ -421,9 +421,54 @@ MDScreen:
                     pos_hint: {"center_x": .5, "center_y": .35}
                     background_color: 0, 0, 0, 0
                     front_name: "BPoppins"
-                    color: rgba(52, 0, 231, 255)
+                    color: rgba(240, 40, 40, 255)
                     on_release:
                         app.delete_everything()
+                    canvas.before:
+                        Color:
+                            rgb: rgba(240, 40, 40, 255)
+                            # rgb: rgba(52, 0, 231, 255)
+                        Line:
+                            width: 1.2
+                            rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+                Button:
+                    text: "Show Secret"
+                    size_hint: .66, .065
+                    pos_hint: {"center_x": .5, "center_y": .25}
+                    background_color: 0, 0, 0, 0
+                    front_name: "BPoppins"
+                    color: rgba(52, 0, 231, 255)
+                    on_release:
+                        app.show_toaster("Not ready yet.")
+                    canvas.before:
+                        Color:
+                            rgb: rgba(52, 0, 231, 255)
+                        Line:
+                            width: 1.2
+                            rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+            
+            MDBottomNavigationItem:
+                name: "call_bar"
+                text: "Call"
+                icon: "phone"
+                
+                MDLabel:
+                    text: "Encrypted Call"
+                    font_name: "BPoppins"
+                    font_size: "26sp"
+                    pos_hint: {"center_x": .6, "center_y": .85}
+                    color: rgba(0, 0, 59, 255)
+                
+                Button:
+                    text: "Call Someone"
+                    size_hint: .66, .065
+                    pos_hint: {"center_x": .5, "center_y": .45}
+                    background_color: 0, 0, 0, 0
+                    front_name: "BPoppins"
+                    color: rgba(52, 0, 231, 255)
+                    on_release:
+                        root.manager.transition.direction = "left"
+                        root.manager.current = "call"
                     canvas.before:
                         Color:
                             rgb: rgba(52, 0, 231, 255)
@@ -1599,12 +1644,16 @@ MDScreen:
 
 """
 signup = """
+#: import webbrowser webbrowser
+
 MDScreen:
     name: "signup"
     username: username
     password: password
     password2: password2
-    password_text: password_text
+    pws2: pws2
+    pws1: pws1
+    check_tos: check_tos
     
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
@@ -1671,6 +1720,15 @@ MDScreen:
                 pos_hint: {"center_x": .45, "center_y": 0}
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
+            MDIconButton:
+                id: pws1
+                icon: "eye"
+                color: 0, 0, 0, 0.4
+                text_color: 0, 0, 0, 0.4
+                theme_text_color: "Custom"
+                pos_hint: {"center_x": .85, "center_y": .5}
+                on_release:
+                    app.show_password_sign()
 
         MDFloatLayout:
             size_hint: .7, .07
@@ -1692,20 +1750,40 @@ MDScreen:
                 pos_hint: {"center_x": .45, "center_y": 0}
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
+            MDIconButton:
+                id: pws2
+                icon: "eye"
+                color: 0, 0, 0, 0.4
+                text_color: 0, 0, 0, 0.4
+                theme_text_color: "Custom"
+                pos_hint: {"center_x": .85, "center_y": .44}
+                on_release:
+                    app.show_password_sign2()
         
         MDCheckbox:
+            id: check_tos
             size_hint: None, None
             size: "48dp", "48dp"
             pos_hint: {"center_x": .15, "center_y": .37}
-            on_active: app.show_password_sign(*args)
-        MDLabel:
-            id: password_text
-            font_name: "MPoppins"
-            text: "Show Password"
-            font_size: "12sp"
-            color: rgba(0, 0, 59, 255)
-            foreground_color: rgba(0, 0, 59, 255)
-            pos_hint: {"center_x": .7, "center_y": .37}
+            on_active: app.accept_tos(*args)
+            
+        MDFloatLayout:
+            MDLabel:
+                font_name: "MPoppins"
+                text: "I accept"
+                font_size: "12sp"
+                color: rgba(0, 0, 59, 255)
+                foreground_color: rgba(0, 0, 59, 255)
+                pos_hint: {"center_x": .7, "center_y": .37}
+            MDTextButton:
+                text: "ToS"
+                font_name: "MPoppins"
+                font_size: "12sp"
+                color: rgba(0, 0, 238, 255)
+                foreground_color: rgba(0, 0, 238, 255)
+                pos_hint: {"center_x": .41, "center_y": .37}
+                on_release:
+                    webbrowser.open("https://protdos.com/terms-of-service.html")
         
         Button:
             text: "SIGN UP"
@@ -2122,6 +2200,12 @@ chat = """
     size_hint_y: None
     pos_hint: {"x": -.3}
     height: 600
+    
+<AddImageCommand>
+    size_hint_y: None
+    pos_hint: {"right": 1.2}
+    height: 600
+    
 <AddFile>
     size_hint_y: None
     pos_hint: {"x": .02}
@@ -2149,6 +2233,7 @@ chat = """
                 icon: "download"
                 on_release:
                     app.download(llabel.text)
+                    
 <AddFileCommand>
     size_hint_y: None
     pos_hint: {"right": .98}
@@ -2446,6 +2531,116 @@ MDScreen:
             on_release:
                 app.chat_start_with(group_num.text)
 """
+progress_bar = """
+MDScreen:
+    name: "progress_bar"
+    progress: progress
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+        MDProgressBar:
+            id: progress
+            value: 0
+            size_hint: .8, None
+            pos_hint: {"center_x": .5, "center_y": .5}
+"""
+
+call = """
+MDScreen:
+    name: "call"
+    icon: icon
+    name_: name_
+
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)
+            on_release:
+                root.manager.transition.direction = "right"
+                root.manager.current = "main"
+
+        MDLabel:
+            text: "Calling"
+            font_size: "26sp"
+            font_name: "BPoppins"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            text: "Enter the recipient ID"
+            font_size: "18sp"
+            font_name: "BPoppins"
+            pos_hint: {"center_x": .6, "center_y": .79}
+            color: rgba(135, 133, 193, 255)
+
+        MDFloatLayout:
+            size_hint: .7, .07
+            pos_hint: {"center_x": .5, "center_y": .63}
+            TextInput:
+                id: name_
+                font_name: "MPoppins"
+                hint_text: "Recipient ID"
+                size_hint_y: .75
+                pos_hint: {"center_x": .43, "center_y": .5}
+                background_color: 1, 1, 1, 0
+                foreground_color: rgba(0, 0, 59, 255)
+                cursor_color: rgba(0, 0, 59, 255)
+                font_size: "14sp"
+                cursor_width: "2sp"
+                multiline: False
+            MDFloatLayout:
+                pos_hint: {"center_x": .45, "center_y": 0}
+                size_hint_y: .03
+                md_bg_color: rgba(178, 178, 178, 255)
+
+        MDIconButton:
+            id: icon
+            icon: "phone"
+            pos_hint: {"center_x": .5, "center_y": .2}
+            theme_text_color: "Custom"
+            text_color: rgba(255, 255, 255, 255)
+            # md_bg_color: 255, 0, 0, 255
+            md_bg_color: rgba(0, 206, 0, 255)
+            on_release:
+                app.call(name_.text)
+"""
+hangup = """
+MDScreen:
+    name: "hangup"
+    caller_id: caller_id
+
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+
+        MDLabel:
+            text: "Telephone"
+            font_size: "26sp"
+            font_name: "BPoppins"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            id: caller_id
+            text: ""
+            font_size: "17sp"
+            font_name: "BPoppins"
+            pos_hint: {"center_x": .6, "center_y": .75}
+            color: rgba(0, 0, 59, 255)
+
+        MDIconButton:
+            id: icon
+            icon: "phone-hangup"
+            pos_hint: {"center_x": .5, "center_y": .2}
+            theme_text_color: "Custom"
+            text_color: rgba(255, 255, 255, 255)
+            md_bg_color: 255, 0, 0, 255
+            on_release:
+                app.hangup()
+"""
 
 from kivy.utils import platform
 # from PIL import Image
@@ -2455,7 +2650,7 @@ if platform == "android":
     request_permissions([Permission.INTERNET])
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
-Window.size = (310, 580)
+# Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -2469,6 +2664,8 @@ current_chat_with = ""
 
 is_it_my_turn = False
 
+accepted = False
+
 # 2.tcp.eu.ngrok.io:13117
 # HOST = "5.tcp.eu.ngrok.io"
 # PORT = 15921  # The port used by the server
@@ -2479,7 +2676,7 @@ try:
 except:
     HOST, PORT = None, None
 
-HOST, PORT = "localhost", 5000
+# HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -2542,11 +2739,27 @@ class AddImage(Image):
         # os.startfile(self.source)
 
 
+class AddImageCommand(Image):
+    source = StringProperty()
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.clicked()
+
+    def clicked(self):
+        try:
+            print('Image clicked:', self.source)
+            IImage.open(self.source).save(f"/sdcard/{self.source}")
+        except Exception as e:
+            print("Error wtf:", e)
+            toast("Couldn't save image.")
+        # os.startfile(self.source)
+
+
 class AddFile(BoxLayout):
     file_source = StringProperty()
     font_name = "BPoppins"
     font_size = 12
-
 
 
 class AddFileCommand(BoxLayout):
@@ -2557,21 +2770,24 @@ class AddFileCommand(BoxLayout):
 
 ######################### Encryption #########################
 def gen(length):
-    al = string.ascii_uppercase + string.ascii_lowercase + string.digits + "^!§$%&/()=?*+#'-_.:;{[]}"  # creating a list of nearly every char
-    """
-    This code is outdated, because generating a random key isn't truly possible with the random module:
-    - https://python.readthedocs.io/en/stable/library/random.html
-    - https://www.youtube.com/watch?v=Nm8NF9i9vsQ
-    bb = []  # init list
-    for i in range(length):  # creating a random password based on var length
-        bb.append(random.choice(al))
-    return "".join(bb)
-    """
-    # A better solution is this:
-    key_sequences = []
-    for _ in range(length):
-        key_sequences.append(secrets.choice(al))
-    return "".join(key_sequences)
+    try:
+        al = string.ascii_uppercase + string.ascii_lowercase + string.digits + "^!§$%&/()=?*+#'-_.:;{[]}"  # creating a list of nearly every char
+        """
+        This code is outdated, because generating a random key isn't truly possible with the random module:
+        - https://python.readthedocs.io/en/stable/library/random.html
+        - https://www.youtube.com/watch?v=Nm8NF9i9vsQ
+        bb = []  # init list
+        for i in range(length):  # creating a random password based on var length
+            bb.append(random.choice(al))
+        return "".join(bb)
+        """
+        # A better solution is this:
+        key_sequences = []
+        for _ in range(length):
+            key_sequences.append(secrets.choice(al))
+        return "".join(key_sequences)
+    except Exception as e:
+        print("Error19:", e)
 
 
 def strength_test(p):
@@ -2582,15 +2798,18 @@ def strength_test(p):
         out = policy.test(p)
         print(len(out))
         return [True if len(out) == 0 else False]  # returning if password is good or not
-    except Exception:
-        exit()
+    except Exception as e:
+        print("Error20:", e)
 
 
 def hash_pwd(password):
-    salt = "%Up=gJDD8dwL^5+W4pgyprt*sd4QEKTM4nfkD$ZW&Zb_?j^wQUGS6kK?2VkfYy7zu?hnN%a9YU!wduhwnUbKpUe*g*Y#aT$=M2KsA6gMFpU+q!!Ha6HN6_&F3DCL@-gweA47FQyq9wu*yd&By%p-dKPGucfjs2-26He-rPZjLEvBn$a-NFeDHD-UP9A23@5@EtZ5+LmeBS@ZUHW9HDy9U@!3BM2^U5nrq+wUjesgEX^SvDgf8Qs8$kjzEacUGx@r"
-    dataBase_password = password + salt
-    hashed = hashlib.md5(dataBase_password.encode())
-    return hashed.hexdigest()
+    try:
+        salt = "%Up=gJDD8dwL^5+W4pgyprt*sd4QEKTM4nfkD$ZW&Zb_?j^wQUGS6kK?2VkfYy7zu?hnN%a9YU!wduhwnUbKpUe*g*Y#aT$=M2KsA6gMFpU+q!!Ha6HN6_&F3DCL@-gweA47FQyq9wu*yd&By%p-dKPGucfjs2-26He-rPZjLEvBn$a-NFeDHD-UP9A23@5@EtZ5+LmeBS@ZUHW9HDy9U@!3BM2^U5nrq+wUjesgEX^SvDgf8Qs8$kjzEacUGx@r"
+        dataBase_password = password + salt
+        hashed = hashlib.md5(dataBase_password.encode())
+        return hashed.hexdigest()
+    except Exception as e:
+        print("Error21:", e)
 
 
 class Encrypt:
@@ -2705,68 +2924,117 @@ def decode_file(enc_string, name, key):
 
 ######################### Main #########################
 class ChatApp(MDApp):
+    i = 0
+    key_genned = False
+
+    # For voice
+    hanged = False
+    call_initiated = False
+    call_started = False
+    threads = []
+
+    audio = None
+    FORMAT = None
+    CHANNELS = None
+    RATE = None
+    CHUNK = None
+    stream = None
+    streamOut = None
+
+    username = None
+    password = None
+    id = None
+    gggggg = None
+    rooms = None
+    mf_key_group_bla = None
+    super_dubba_key = None
+
+    aaa = None
+    l = None
+
+    public_key = None
+    private_key = None
+
+    screen_manager = None
+
+    sock = None
+
     def build(self):
-        self.username = ""
-        self.password = ""
-        self.id = ""
-        self.rooms = []
-        self.mf_key_group_bla = ""
-        self.super_dubba_key = ""
+        try:
+            # set up PyAudio
+            self.audio = pyaudio.PyAudio()
+            self.FORMAT = pyaudio.paInt16
+            self.CHANNELS = 1
+            self.RATE = 44100
+            self.CHUNK = 1024
 
-        self.aaa = None
-        self.l = []
+            # set up the audio stream
+            self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS, rate=self.RATE, input=True,
+                                          frames_per_buffer=self.CHUNK)
 
-        self.public_key = None
-        self.private_key = None
+            self.streamOut = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
+                                             rate=self.RATE, output=True, input_device_index=0,
+                                             frames_per_buffer=self.CHUNK)
 
-        self.screen_manager = ScreenManager()
+            self.username = ""
+            self.password = ""
+            self.id = ""
+            self.gggggg = ""
+            self.rooms = []
+            self.mf_key_group_bla = ""
+            self.super_dubba_key = ""
 
-        self.screen_manager.add_widget(Builder.load_string(login))
-        self.screen_manager.add_widget(Builder.load_string(home))
-        self.screen_manager.add_widget(Builder.load_string(chat_private))
-        self.screen_manager.add_widget(Builder.load_string(chat_sec))
-        self.screen_manager.add_widget(Builder.load_string(main))
-        self.screen_manager.add_widget(Builder.load_string(group_create))
-        self.screen_manager.add_widget(Builder.load_string(group_join))
-        self.screen_manager.add_widget(Builder.load_string(group))
-        self.screen_manager.add_widget(Builder.load_string(password_reset))
-        self.screen_manager.add_widget(Builder.load_string(chat_new_private))
-        self.screen_manager.add_widget(Builder.load_string(signup))
-        self.screen_manager.add_widget(Builder.load_string(help_))
-        self.screen_manager.add_widget(Builder.load_string(chat_load))
-        self.screen_manager.add_widget(Builder.load_string(bad))
-        self.screen_manager.add_widget(Builder.load_string(new_group_join))
-        self.screen_manager.add_widget(Builder.load_string(show_id2))
-        self.screen_manager.add_widget(Builder.load_string(show_qr2))
-        self.screen_manager.add_widget(Builder.load_string(show_id))
-        self.screen_manager.add_widget(Builder.load_string(chat))
-        self.screen_manager.add_widget(Builder.load_string(all_load))
+            self.aaa = None
+            self.l = []
 
-        return self.screen_manager
+            self.public_key = None
+            self.private_key = None
+
+            self.screen_manager = ScreenManager()
+
+            self.screen_manager.add_widget(Builder.load_string(login))
+            self.screen_manager.add_widget(Builder.load_string(progress_bar))
+            self.screen_manager.add_widget(Builder.load_string(home))
+            self.screen_manager.add_widget(Builder.load_string(chat_private))
+            self.screen_manager.add_widget(Builder.load_string(chat_sec))
+            self.screen_manager.add_widget(Builder.load_string(main))
+            self.screen_manager.add_widget(Builder.load_string(group_create))
+            self.screen_manager.add_widget(Builder.load_string(group_join))
+            self.screen_manager.add_widget(Builder.load_string(group))
+            self.screen_manager.add_widget(Builder.load_string(password_reset))
+            self.screen_manager.add_widget(Builder.load_string(chat_new_private))
+            self.screen_manager.add_widget(Builder.load_string(signup))
+            self.screen_manager.add_widget(Builder.load_string(help_))
+            self.screen_manager.add_widget(Builder.load_string(chat_load))
+            self.screen_manager.add_widget(Builder.load_string(bad))
+            self.screen_manager.add_widget(Builder.load_string(new_group_join))
+            self.screen_manager.add_widget(Builder.load_string(show_id2))
+            self.screen_manager.add_widget(Builder.load_string(show_qr2))
+            self.screen_manager.add_widget(Builder.load_string(show_id))
+            self.screen_manager.add_widget(Builder.load_string(chat))
+            self.screen_manager.add_widget(Builder.load_string(all_load))
+            self.screen_manager.add_widget(Builder.load_string(call))
+            self.screen_manager.add_widget(Builder.load_string(hangup))
+
+            return self.screen_manager
+        except Exception as e:
+            print("Error21:", e)
 
     def connect(self):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((HOST, PORT))
         except Exception as e:
-            print("Error1:", e)
+            print("Error22:", e)
             self.screen_manager.current_screen = "main"
             self.show_toaster("Couldn't connect to server. Check connection. ")
 
-    def change_screen(self, name):
-        self.screen_manager.current = name
-
     def sign_up(self, username, password, password2):
         try:
-            self.connect()
             global user
             self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {username}"
-            self.screen_manager.get_screen("signup").username.text = ""
-            self.screen_manager.get_screen("signup").password.text = ""
-            self.screen_manager.get_screen("signup").password2.text = ""
-            # TODO: add checking
             if password != password2:
-                self.screen_manager.current = "bad"
+                self.show_toaster("Password's do not match.")
                 return
             if not strength_test(password)[0]:
                 self.show_toaster("Password isn't strong enough.")
@@ -2774,46 +3042,57 @@ class ChatApp(MDApp):
                 self.screen_manager.get_screen("signup").password2.text = ""
                 self.screen_manager.current = "signup"
                 return
+            if not accepted:
+                self.show_toaster("You need to accept our ToS.")
+                return
             uid = str(uuid.uuid4())
-            public, private = rr.newkeys(1024)
-            self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
-            print("nah bruh")
-            self.sock.send(public.save_pkcs1())
-            r = self.sock.recv(1024).decode()
-            if r == "error":
-                self.show_toaster("Username taken. Try again.")
-                return
-            elif r == "errorv2":
-                self.show_toaster("ID already used - internal error. Try again later.")
-                return
-            else:
-                pass
-            with open("private_key.txt", "w") as file:
-                file.write(private.save_pkcs1().decode())
-            with open("public_key.txt", "w") as file:
-                file.write(public.save_pkcs1().decode())
-            self.public_key = public  # not needed
-            self.private_key = private
-            """
-            with open("data/username.txt", "w") as file:
-                file.w rite(username)
-            with open("data/auth.txt", "w") as file:
-                file.write(Encrypt(message_=password, key=password).encrypt().decode())
-            with open("data/id.txt", "w") as file:
-                uid = str(uuid.uuid4())
-                file.write(uid)
-            """
-            self.id = uid
-            self.username = username
-            user = username
-            self.password = password
-            self.super_dubba_key = self.password
-            self.screen_manager.current = "home"
+            print("Generating.")
+            threading.Thread(target=self.okok, args=(username, password, uid,)).start()
 
-            self.show_toaster("Account created!")
         except:
-            self.screen_manager.current_screen = "home"
-            self.show_toaster("Error creating your account! Please try again.")
+            pass
+
+    @mainthread
+    def okok(self, username, password, uid):
+        public, private = rsa.newkeys(1024)
+        self.connect()
+        self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
+        time.sleep(0.5)
+        print("aaa")
+        self.sock.send(public.save_pkcs1())
+        r = self.sock.recv(1024).decode()
+        if r == "error":
+            self.show_toaster("Username taken. Try again.")
+            self.screen_manager.get_screen("signup").username.text = ""
+            return
+        elif r == "errorv2":
+            self.show_toaster("ID already used - internal error. Try again later.")
+            return
+        else:
+            pass
+        enc_priv = Encrypt(message_=private.save_pkcs1().decode(), key=password).encrypt().decode()
+        with open("private_key.txt", "w") as file:
+            file.write(enc_priv)
+        # with open("private_key.txt", "w") as file:
+        #     file.write(private.save_pkcs1().decode())  # encrypt private key
+        with open("public_key.txt", "w") as file:
+            file.write(public.save_pkcs1().decode())
+        self.public_key = public  # not needed
+        self.private_key = private
+        self.id = uid
+        self.username = username
+        self.password = password
+        self.super_dubba_key = self.password
+        self.screen_manager.current = "home"
+        self.screen_manager.get_screen("signup").username.text = ""
+        self.screen_manager.get_screen("signup").password.text = ""
+        self.screen_manager.get_screen("signup").password2.text = ""
+
+        self.show_toaster("Account created!")
+    # except Exception as e:
+    #    print("Error23:", e)
+    #    self.screen_manager.current_screen = "home"
+    #    self.show_toaster("Error creating your account! Please try again.")
 
     def login(self, username, password):
         try:
@@ -2854,8 +3133,16 @@ class ChatApp(MDApp):
                     self.show_toaster("Invalid password")
                     self.screen_manager.get_screen("login").password.text = ""
                 else:
-                    with open("private_key.txt", "rb") as file:
-                        self.private_key = rr.PrivateKey.load_pkcs1(file.read())
+                    # with open("private_key.txt", "rb") as file:
+                    #     self.private_key = rr.PrivateKey.load_pkcs1(file.read())
+                    with open("private_key.txt", "r") as file:
+                        a = file.read()
+                        dec_priv = Decrypt(message_=a, key=password).decrypt().encode()
+                        print(dec_priv)
+                        if dec_priv is None:
+                            self.show_toaster("Private key couldn't be decrypted.")
+                            return
+                        self.private_key = rr.PrivateKey.load_pkcs1(dec_priv)
                     self.username = username
                     self.password = password
                     self.super_dubba_key = password
@@ -2871,7 +3158,8 @@ class ChatApp(MDApp):
                 self.screen_manager.get_screen("login").password.text = ""
                 self.show_toaster("Error logging in! Please try again.")
                 self.screen_manager.current = "login"
-        except:
+        except Exception as e:
+            print("Error24", e)
             self.screen_manager.current_screen = "home"
             self.screen_manager.get_screen("login").username.text = ""
             self.screen_manager.get_screen("login").password.text = ""
@@ -2886,7 +3174,7 @@ class ChatApp(MDApp):
 
             self.screen_manager.current = "show_qr"
         except:
-            self.screen_manager.current_screen = "home"
+            self.screen_manager.current_screen = "login"
             self.show_toaster("Error! Please sign in again.")
 
     def show_qr_code2(self, key):
@@ -2898,7 +3186,7 @@ class ChatApp(MDApp):
 
             self.screen_manager.current = "show_qr2"
         except:
-            self.screen_manager.current_screen = "home"
+            self.screen_manager.current_screen = "login"
             self.show_toaster("Error! Please sign in again.")
 
     def show_secret_key(self):
@@ -2919,8 +3207,8 @@ class ChatApp(MDApp):
                     self.screen_manager.get_screen("home").username_icon.icon = "account-cog"
 
                     self.connect()
-                    sock.send(f"CHANGE_USERNAME:{self.username}:{self.password}:{username}".encode())
-                    r = sock.recv(1024).decode()
+                    self.sock.send(f"CHANGE_USERNAME:{self.username}:{self.password}:{username}".encode())
+                    r = self.sock.recv(1024).decode()
                     if r == "success":
                         self.screen_manager.current = "login"
                         self.show_toaster("Username has been changed")
@@ -2959,16 +3247,35 @@ class ChatApp(MDApp):
                 print(f"Found {len(encrypted_keys)} key(s) in groups.csv")
                 print(encrypted_keys)
 
+                with open("private_key.txt", "r") as file:
+                    a = file.read()
+                    dec_priv = Decrypt(message_=a, key=self.super_dubba_key).decrypt().encode()
+                    print(dec_priv)
+                    if dec_priv is None:
+                        self.show_toaster("Private key couldn't be decrypted.")
+                        return
+                    private_key = rr.PrivateKey.load_pkcs1(dec_priv)
+                enc_priv = Encrypt(message_=private_key.save_pkcs1().decode(), key=new).encrypt().decode()
+                with open("private_key.txt", "w") as file:
+                    file.write(enc_priv)
+
                 with open("groups.csv", "w") as f:
                     f.write("key\n")
                     for enc_key in encrypted_keys:
                         # print(enc_key)
                         dec_key = Decrypt(message_=enc_key, key=self.super_dubba_key).decrypt()
-                         #print(dec_key)
+                        # print(dec_key)
                         enc_key2 = Encrypt(message_=dec_key, key=new).encrypt().decode()
-                         #print(enc_key2)
+                        # print(enc_key2)
                         f.write(enc_key2 + "\n")
-
+                with open("private_chats.csv", "w") as f:
+                    for enc_key in encrypted_keys:
+                        # print(enc_key)
+                        dec_key = Decrypt(message_=enc_key, key=self.super_dubba_key).decrypt()
+                        # print(dec_key)
+                        enc_key2 = Encrypt(message_=dec_key, key=new).encrypt().decode()
+                        # print(enc_key2)
+                        f.write(enc_key2 + "\n")
 
                 self.password = new
                 self.super_dubba_key = new
@@ -3027,12 +3334,14 @@ class ChatApp(MDApp):
                 try:
                     if rec not in open("private_chats.csv", "r").read():
                         with open("private_chats.csv", "a") as rec_file:
-                            rec_file.write(rec + "\n")
+                            # rec_file.write(rec + "\n")
+                            rec_file.write(Encrypt(message_=rec, key=self.super_dubba_key).encrypt().decode() + "\n")
                     open("private_chats.csv", "r").close()
                 except:
                     open("private_chats.csv", "w").close()
                     with open("private_chats.csv", "a") as rec_file:
-                        rec_file.write(rec + "\n")
+                        rec_file.write(Encrypt(message_=rec, key=self.super_dubba_key).encrypt().decode() + "\n")
+                        # rec_file.write(rec + "\n")
                     open("private_chats.csv", "r").close()
                 open(f"{rec}.txt", "w").close()
 
@@ -3297,8 +3606,13 @@ class ChatApp(MDApp):
         self.l = []
         for item in a:
             if item != "":
-                if item not in self.l:
-                    self.l.append(item)
+                try:
+                    item = Decrypt(message_=item, key=self.super_dubba_key).decrypt()
+                    if item not in self.l:
+                        self.l.append(item)
+                except:
+                    print(f"item {item} doesn't belong to the acc.")
+                    pass
 
         for i, item in enumerate(self.l):
             self.screen_manager.get_screen("all_load").group_list.add_widget(
@@ -3308,23 +3622,29 @@ class ChatApp(MDApp):
         rec = self.l[int(nnum)-1]
         self.create_chat(rec)
 
-    def show_password(self, _, value_):
-        if value_:
+    def show_password(self):
+        if self.screen_manager.get_screen("login").pws1.icon == "eye":
             self.screen_manager.get_screen("login").password.password = False
-            self.screen_manager.get_screen("login").password_text.text = "Hide Password"
+            self.screen_manager.get_screen("login").pws1.icon = "eye-off"
         else:
             self.screen_manager.get_screen("login").password.password = True
-            self.screen_manager.get_screen("login").password_text.text = "Show Password"
+            self.screen_manager.get_screen("login").pws1.icon = "eye"
 
-    def show_password_sign(self, _, value_):
-        if value_:
+    def show_password_sign(self):
+        if self.screen_manager.get_screen("signup").pws1.icon == "eye":
             self.screen_manager.get_screen("signup").password.password = False
-            self.screen_manager.get_screen("signup").password2.password = False
-            self.screen_manager.get_screen("signup").password_text.text = "Hide Password"
+            self.screen_manager.get_screen("signup").pws1.icon = "eye-off"
         else:
             self.screen_manager.get_screen("signup").password.password = True
+            self.screen_manager.get_screen("signup").pws1.icon = "eye"
+
+    def show_password_sign2(self):
+        if self.screen_manager.get_screen("signup").pws2.icon == "eye":
+            self.screen_manager.get_screen("signup").password2.password = False
+            self.screen_manager.get_screen("signup").pws2.icon = "eye-off"
+        else:
             self.screen_manager.get_screen("signup").password2.password = True
-            self.screen_manager.get_screen("signup").password_text.text = "Show Password"
+            self.screen_manager.get_screen("signup").pws2.icon = "eye"
 
     @mainthread
     def send_message_aaa(self, message, _):
@@ -3427,21 +3747,24 @@ class ChatApp(MDApp):
                             # name = self.sock.recv(1024)
                             print("image coming.")
                             print("aaaa", name)
-                            k = f"{uuid.uuid4()}-{name}"
+                            # k = f"{uuid.uuid4()}-{name}"
 
-                            kk = os.path.join(os.path.dirname(os.path.abspath(__file__)), k)
-                            with open(kk + ".png", "wb") as fp:
-                                while True:
-                                    data = self.sock.recv(1024)
-                                    if not data or data == b":ENDED:":
-                                        break
-                                    fp.write(data)
-                                    print("data:", data)
+                            kk = os.path.join(os.path.dirname(os.path.abspath(__file__)), name.decode())
+                            print("kkk:", kk)
+                            al_data = []
+                            while True:
+                                data = self.sock.recv(1024)
+                                if not data or data == b":ENDED:":
+                                    break
+                                al_data.append(data.decode())
+                            dat = "".join(al_data)
+                            print("cat:", dat)
                             print("okay received image")
 
-                            time.sleep(0.5)
+                            dec = decode_file(dat.encode(), kk, group_key)
+                            print(dec)
 
-                            self.add_img(img_src=kk + ".png")
+                            self.add_img(img_src=kk)
 
                         else:
                             self.add2(message, fro=sender)
@@ -3452,6 +3775,10 @@ class ChatApp(MDApp):
                         break
             except Exception as e:
                 print("Error13:", e)
+                if "[WinError 10054]" in e:
+                    self.screen_manager.current = "main"
+                    self.show_toaster("Server went offline.")
+                    break
                 continue
 
     @mainthread
@@ -3505,6 +3832,16 @@ class ChatApp(MDApp):
                 AddImage(source=img_src))
         except Exception as e:
             print("Error15:", e)
+            pass
+
+    @mainthread
+    def add_img_cmd(self, img_src):
+        try:
+            print(img_src)
+            self.screen_manager.get_screen("chat").chat_list.add_widget(
+                AddImageCommand(source=img_src))
+        except Exception as e:
+            print("Error88:", e)
             pass
 
     @mainthread
@@ -3568,7 +3905,7 @@ class ChatApp(MDApp):
         try:
             f_size = os.path.getsize(file_path) / 1048576
 
-            if f_size > 25:
+            if f_size > 10:
                 self.show_toaster("File is too big.")
                 print("File is too big.")
             else:
@@ -3629,15 +3966,17 @@ class ChatApp(MDApp):
                     time.sleep(1)
                     print("aaass")
 
-                    with open(file_path, 'rb') as f:
-                        img_data = f.read()
+                    # with open(file_path, 'rb') as f:
+                    #    img_data = f.read()
+                    img_data = encode_file(file_path, group_key)
                     self.sock.sendall(img_data)
 
                     time.sleep(.5)
                     self.sock.sendall(b":ENDED:")
 
-                    self.screen_manager.get_screen("chat").chat_list.add_widget(
-                        Command(text=filename, size_hint_x=.75, halign="center"))
+                    self.add_img_cmd(file_path)
+                    # self.screen_manager.get_screen("chat").chat_list.add_widget(
+                    #    Command(text=filename, size_hint_x=.75, halign="center"))
 
         except Exception as e:
             print("Error16:", e)
@@ -3700,9 +4039,6 @@ class ChatApp(MDApp):
             app_name='Encochat'
         )
 
-    def message_click(self):
-        print("message clicked")
-
     def show_id(self):
         try:
             # pc.copy(self.id)
@@ -3728,6 +4064,118 @@ class ChatApp(MDApp):
         except Exception:
             toast("Couldn't save file.")
 
+    def accept_tos(self, _, value_):
+        global accepted
+        if value_:
+            accepted = True
+        else:
+            accepted = False
+
+    def show_secret(self):
+        try:
+            with open("private_key.txt", "r") as priv_file:
+                qr = qrcode.make(priv_file.read())
+                qr.save("private_key.png")
+            self.screen_manager.current = "show_secret"
+        except Exception as e:
+            print("Error QR:", e)
+
+    def loader(self, *args):
+        if self.key_genned:
+            Clock.unschedule(self.loader)
+        else:
+            try:
+                self.i += 1
+                self.screen_manager.get_screen("progress_bar").progress.value = self.i
+            except:
+                Clock.unschedule(self.loader)
+
+    def do_smt(self):
+        self.screen_manager.current = "progress_bar"
+        Clock.schedule_interval(self.loader, 0.5)  # 3
+
+    def gen(self):
+        public, private = rsa.newkeys(1024)
+        self.key_genned = True
+        self.public_key = public
+        self.private_key = private
+
+    def connect_voice(self, recipient):
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.connect(('localhost', 5000))
+        self.client_socket.send(self.username.encode())
+        print("aaa")
+        time.sleep(.5)
+        self.client_socket.send(recipient.encode())
+
+    def record(self):
+        while not self.hanged:
+            try:
+                data = self.stream.read(self.CHUNK)
+                self.client_socket.send(data)
+            except Exception as e:
+                print(e)
+                break
+        print("cbroken")
+
+    def receive_voice(self):
+        self.client_socket.settimeout(5)  # waiting for other user to pick up
+        while not self.hanged:
+            try:
+                # read audio data from the microphone
+                data = self.client_socket.recv(1024)
+                self.client_socket.settimeout(1)
+                if not data:
+                    break
+                print(data)
+                self.streamOut.write(data)
+                self.call_started = True
+            except Exception as e:
+                print(e)
+                break
+        self.hangup()
+        print("a", self.client_socket.gettimeout())
+        if self.call_started:
+            print("Recpipient ended call.")
+            # toast("Recipient ended call.")
+        else:
+            print("Couldn't connect.")
+            # toast("Normal end.")
+        print("bbroken")
+
+    def call(self, recipient):
+        if recipient != "":
+            self.hanged = False
+            self.call_initiated = True
+            self.connect_voice(recipient)
+            print(recipient)
+            a = threading.Thread(target=self.record)
+            b = threading.Thread(target=self.receive_voice)
+            self.threads.append(a)
+            self.threads.append(b)
+            a.start()
+            b.start()
+            self.screen_manager.get_screen("call").name_.text = ""
+            self.screen_manager.get_screen("hangup").caller_id.text = recipient
+            self.screen_manager.current = "hangup"
+        else:
+            toast("Invalid.")
+
+    @mainthread
+    def hangup(self):
+        self.client_socket.close()
+        print("im here")
+        self.hanged = True
+        self.call_started = False
+        self.call_initiated = False
+        self.screen_manager.current = "call"
+        for item in self.threads:
+            try:
+                item.join()
+            except:
+                pass
+        print("okay")
+
 
 if __name__ == "__main__":
     LabelBase.register(name="MPoppins",
@@ -3736,8 +4184,3 @@ if __name__ == "__main__":
                        fn_regular="Poppins-SemiBold.ttf")
     ChatApp().run()
 
-# a503c1ff-69c4-4789-bca9-94366a3d90f5
-# 65188ad1-ff97-4e6f-902d-be7c29d8791b
-
-# mkdir jkjkssa && cd jkjkssa && git clone https://github.com/ProtDos/PrivateChat && cd PrivateChat/PrivateChat && export PATH=$PATH:~/.local/bin/
-# buildozer android debug deploy run

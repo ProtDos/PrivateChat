@@ -4,12 +4,6 @@ from datetime import datetime
 import time
 import csv
 import pandas as pd
-
-import base64  # For encrypting messages
-from cryptography.fernet import Fernet  # For encrypting messages
-from cryptography.hazmat.backends import default_backend  # For encrypting messages
-from cryptography.hazmat.primitives import hashes  # For encrypting messages
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC  # For encrypting messages
 import hashlib
 
 
@@ -297,12 +291,9 @@ def handle(client, g_id):
                         person.sendall(data)
                 print("done")
 
-
             if not pp:
                 if message.decode() == "PRIV:":
                     print("okay")
-                    a = "True"
-                    b = None
                 print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} Message: ", message)
                 if ": " in message.decode():
                     broadcast(message, client)
@@ -516,6 +507,9 @@ def fuck_around(client, address):
             else:
                 print("nah")
                 client.send(b"error")
+        elif xxx.startswith("START_VOICE:"):
+            print("VOICE REQUEST RECEIVED.")
+            threading.Thread(target=start_voice, args=(client,))
         else:
             if xxx.startswith("ID:::::"):
                 _, nickname, group_id = xxx.split("|||")
@@ -534,12 +528,54 @@ def fuck_around(client, address):
         print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} Error: {e}")
 
 
+########### VOICE CHAT ###########
+clients_voice = []
+dataset_voice = []
+
+
+def handle_client_voice(sock, reci):
+    while True:
+        try:
+            data = sock.recv(1024)
+            if not data:
+                print("nah")
+                break
+
+            for item in dataset:
+                if item["name"] == reci:
+                    item["client"].sendall(data)
+        except:
+            print("break 1")
+            sock.close()
+            break
+    print("break 2")
+
+
+def start_voice(client_socket):
+    nickname = client_socket.recv(1024).decode()
+
+    for item in dataset:
+        if item["name"] == nickname:
+            dataset.remove(item)
+
+    rec = client_socket.recv(1024).decode()
+
+    print(f"{nickname} calls {rec}")
+
+    dataset.append({"client": client_socket, "name": nickname})
+
+    # add the client socket to the list
+    clients.append(client_socket)
+
+    # handle the client connection in a new thread
+    client_thread = threading.Thread(target=handle_client_voice, args=(client_socket, rec,))
+    client_thread.start()
+
+
 def receive():
     print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} Server started...")
     while True:
         try:
-            now = datetime.now()
-
             client, address = server.accept()
             print("Connected with {}".format(str(address)))
 
