@@ -34,3 +34,4 @@ numpy~=1.23.5
 sympy~=1.11.1
 opencv-python~=4.7.0.72
 android
+sounddevice
