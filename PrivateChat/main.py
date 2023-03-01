@@ -1,5 +1,4 @@
 # KivyMD
-import rsa
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivymd.toast import toast  # for sending toast messages
@@ -14,6 +13,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, NumericProperty  # for chat screen, displaying speech bubbles
 from kivy.uix.image import Image
 from kivy.clock import Clock
+from kivy.core.audio import SoundLoader
 
 # Cryptography
 import base64  # For encrypting messages
@@ -22,10 +22,12 @@ from cryptography.hazmat.backends import default_backend  # For encrypting messa
 from cryptography.hazmat.primitives import hashes  # For encrypting messages
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC  # For encrypting messages
 import rsa as rr
+import rsa
 import hashlib
 
 # Voice
-import pyaudio
+# import pyaudio
+import sounddevice as sd
 
 # Other
 import threading  # Threaded tasks
@@ -41,6 +43,7 @@ import qrcode  # creating QR-Codes (for the keys)
 from kivy.core.clipboard import Clipboard
 import requests
 from PIL import Image as IImage
+import numpy as np
 
 """
 - Encrypt Private Messaging
@@ -2561,7 +2564,7 @@ MDScreen:
             text_color: rgba(26, 24, 58, 255)
             on_release:
                 root.manager.transition.direction = "right"
-                root.manager.current = "main"
+                root.manager.current = "home"
 
         MDLabel:
             text: "Calling"
@@ -2650,7 +2653,7 @@ if platform == "android":
     request_permissions([Permission.INTERNET])
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
-# Window.size = (310, 580)
+Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -2676,7 +2679,7 @@ try:
 except:
     HOST, PORT = None, None
 
-# HOST, PORT = "localhost", 5000
+HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -2959,8 +2962,12 @@ class ChatApp(MDApp):
 
     sock = None
 
+    sound = None
+    BLOCK_SIZE = None
+
     def build(self):
         try:
+            """
             # set up PyAudio
             self.audio = pyaudio.PyAudio()
             self.FORMAT = pyaudio.paInt16
@@ -2975,6 +2982,10 @@ class ChatApp(MDApp):
             self.streamOut = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
                                              rate=self.RATE, output=True, input_device_index=0,
                                              frames_per_buffer=self.CHUNK)
+            """
+            self.CHANNELS = 1
+            self.BLOCK_SIZE = 1024
+            self.sound = SoundLoader.load('dial.wav')
 
             self.username = ""
             self.password = ""
@@ -4108,6 +4119,7 @@ class ChatApp(MDApp):
         time.sleep(.5)
         self.client_socket.send(recipient.encode())
 
+    """
     def record(self):
         while not self.hanged:
             try:
@@ -4125,6 +4137,10 @@ class ChatApp(MDApp):
                 # read audio data from the microphone
                 data = self.client_socket.recv(1024)
                 self.client_socket.settimeout(1)
+                try:
+                    self.sound.stop()
+                except:
+                    pass
                 if not data:
                     break
                 print(data)
@@ -4142,22 +4158,74 @@ class ChatApp(MDApp):
             print("Couldn't connect.")
             # toast("Normal end.")
         print("bbroken")
+    """
+
+    def record(self):
+        with sd.InputStream(channels=self.CHANNELS, blocksize=self.BLOCK_SIZE) as stream:
+            print('start recording')
+            while not self.hanged:
+                try:
+                    data, overflowed = stream.read(self.BLOCK_SIZE)
+                    if overflowed:
+                        print('Input stream overflowed!')
+                    self.client_socket.sendall(data)
+                except Exception as e:
+                    print(e)
+                    break
+            stream.close()
+        print("cbroken")
+
+    def receive_voice(self):
+        with sd.OutputStream(channels=self.CHANNELS, blocksize=self.BLOCK_SIZE) as stream:
+            print('start playing')
+            self.client_socket.settimeout(5)
+            while not self.hanged:
+                try:
+                    data = self.client_socket.recv(self.BLOCK_SIZE)
+                    if not data:
+                        break
+                    self.client_socket.settimeout(1)
+                    try:
+                        self.sound.stop()
+                    except:
+                        pass
+                    self.call_started = True
+                    stream.write(np.frombuffer(data, dtype=np.float32))
+                except Exception as e:
+                    print(e)
+                    break
+            stream.stop()
+        self.hangup()
+        print("a", self.client_socket.gettimeout())
+        if self.call_started:
+            print("Recpipient ended call.")
+            # toast("Recipient ended call.")
+        else:
+            print("Couldn't connect.")
+            # toast("Normal end.")
+        print("bbroken")
 
     def call(self, recipient):
         if recipient != "":
-            self.hanged = False
-            self.call_initiated = True
-            self.connect_voice(recipient)
-            print(recipient)
-            a = threading.Thread(target=self.record)
-            b = threading.Thread(target=self.receive_voice)
-            self.threads.append(a)
-            self.threads.append(b)
-            a.start()
-            b.start()
-            self.screen_manager.get_screen("call").name_.text = ""
-            self.screen_manager.get_screen("hangup").caller_id.text = recipient
-            self.screen_manager.current = "hangup"
+            self.connect()
+            self.sock.send(f"USER_EXISTS:{recipient}".encode())
+            if self.sock.recv(1024) == b"exists":
+                self.sound.play()
+                self.hanged = False
+                self.call_initiated = True
+                self.connect_voice(recipient)
+                print(recipient)
+                a = threading.Thread(target=self.record)
+                b = threading.Thread(target=self.receive_voice)
+                self.threads.append(a)
+                self.threads.append(b)
+                a.start()
+                b.start()
+                self.screen_manager.get_screen("call").name_.text = ""
+                self.screen_manager.get_screen("hangup").caller_id.text = recipient
+                self.screen_manager.current = "hangup"
+            else:
+                toast("Invalid.")
         else:
             toast("Invalid.")
 
@@ -4165,6 +4233,10 @@ class ChatApp(MDApp):
     def hangup(self):
         self.client_socket.close()
         print("im here")
+        try:
+            self.sound.stop()
+        except:
+            pass
         self.hanged = True
         self.call_started = False
         self.call_initiated = False

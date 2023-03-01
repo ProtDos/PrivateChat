@@ -507,6 +507,12 @@ def fuck_around(client, address):
             else:
                 print("nah")
                 client.send(b"error")
+        elif xxx.startswith("USER_EXISTS:"):
+            u = xxx.split(":")[1]
+            if check_username_exist(u):
+                client.send(b"exists")
+            else:
+                client.send(b"not exist")
         elif xxx.startswith("START_VOICE:"):
             print("VOICE REQUEST RECEIVED.")
             threading.Thread(target=start_voice, args=(client,))
