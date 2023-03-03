@@ -57,6 +57,10 @@ import numpy as np
 Done...
 """
 
+""" CHANGELOG
+- Change MD5 Hash algo to SHA256
+"""
+
 login = """
 MDScreen:
     name: "login"
@@ -2865,8 +2869,8 @@ from kivy.utils import platform
 if platform == "android":
     from android.permissions import request_permissions, Permission
     from android.storage import primary_external_storage_path
-    request_permissions([Permission.MICROPHONE])
-    request_permissions([Permission.RECORD_AUDIO])
+    # request_permissions([Permission.MICROPHONE])
+    # request_permissions([Permission.RECORD_AUDIO])
     request_permissions([Permission.INTERNET])
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
@@ -3029,7 +3033,7 @@ def hash_pwd(password):
     try:
         salt = "%Up=gJDD8dwL^5+W4pgyprt*sd4QEKTM4nfkD$ZW&Zb_?j^wQUGS6kK?2VkfYy7zu?hnN%a9YU!wduhwnUbKpUe*g*Y#aT$=M2KsA6gMFpU+q!!Ha6HN6_&F3DCL@-gweA47FQyq9wu*yd&By%p-dKPGucfjs2-26He-rPZjLEvBn$a-NFeDHD-UP9A23@5@EtZ5+LmeBS@ZUHW9HDy9U@!3BM2^U5nrq+wUjesgEX^SvDgf8Qs8$kjzEacUGx@r"
         dataBase_password = password + salt
-        hashed = hashlib.md5(dataBase_password.encode())
+        hashed = hashlib.sha256(dataBase_password.encode())
         return hashed.hexdigest()
     except Exception as e:
         print("Error21:", e)
@@ -3312,7 +3316,9 @@ class ChatApp(MDApp):
 
     @mainthread
     def okok(self, username, password, uid):
-        public, private = rsa.newkeys(1024)
+        public, private = rsa.newkeys(2048)
+        self.public = public
+        self.private = private
         self.connect()
         self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
         time.sleep(0.5)
