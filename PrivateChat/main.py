@@ -27,7 +27,10 @@ import hashlib
 
 # Voice
 # import pyaudio
-import sounddevice as sd
+try:
+    import sounddevice as sd
+except:
+    pass
 
 # Other
 import threading  # Threaded tasks
@@ -435,14 +438,16 @@ MDScreen:
                             width: 1.2
                             rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
                 Button:
-                    text: "Show Secret"
+                    text: "Secret"
                     size_hint: .66, .065
                     pos_hint: {"center_x": .5, "center_y": .25}
                     background_color: 0, 0, 0, 0
                     front_name: "BPoppins"
                     color: rgba(52, 0, 231, 255)
-                    on_release:
-                        app.show_toaster("Not ready yet.")
+                    on_release:                       
+                        root.manager.transition.direction = "left"
+                        root.manager.current = "home_secret"
+                        # app.show_toaster("Not ready yet.")
                     canvas.before:
                         Color:
                             rgb: rgba(52, 0, 231, 255)
@@ -2538,13 +2543,41 @@ progress_bar = """
 MDScreen:
     name: "progress_bar"
     progress: progress
+    
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
+        
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)
+            on_release:
+                app.stop_key_gen()
+                # root.manager.transition.direction = "right"
+                # root.manager.current = "main"
+        MDLabel:
+            text: "Generating..."
+            font_name: "BPoppins"
+            font_size: "24sp"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            text: "Your keys are being generated."
+            font_name: "BPoppins"
+            font_size: "16sp"
+            pos_hint: {"center_x": .6, "center_y": .79}
+            color: rgba(135, 133, 193, 255)
+            
+    # MDFloatLayout:
+        # md_bg_color: 1, 1, 1, 1
         MDProgressBar:
             id: progress
             value: 0
             size_hint: .8, None
-            pos_hint: {"center_x": .5, "center_y": .5}
+            pos_hint: {"center_x": .5, "center_y": .3}
 """
 
 call = """
@@ -2645,11 +2678,195 @@ MDScreen:
                 app.hangup()
 """
 
+home_secret = """
+MDScreen:
+    name: "home_secret"
+    
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)
+            on_release:
+                root.manager.transition.direction = "right"
+                root.manager.current = "home"
+        MDLabel:
+            text: "Your Secret Key"
+            font_name: "BPoppins"
+            font_size: "26sp"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            text: "Transfer or receive your secret key."
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .79}
+            color: rgba(135, 133, 193, 255)
+
+        Button:
+            text: "Send"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .34}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [5]
+            on_release:
+                # app.transfer()
+                root.manager.transition.direction = "left"
+                root.manager.current = "transfer"
+                
+        Button:
+            text: "Receive"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .24}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [5]
+            on_release:
+                app.receive_sec()
+                # root.manager.transition.direction = "left"
+                # root.manager.current = "receive"      
+"""
+receive = """
+MDScreen:
+    name: "receive"
+    my_key: my_key
+    
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)
+            on_release:
+                app.exit_receiving()
+                # root.manager.transition.direction = "right"
+                # root.manager.current = "home"
+        MDLabel:
+            text: "Receiving..."
+            font_name: "BPoppins"
+            font_size: "26sp"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            text: "Receive your private key."
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .79}
+            color: rgba(135, 133, 193, 255)
+        
+        MDLabel:
+            text: "Your IP:"
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .5}
+            color: rgba(0, 0, 0, 255)
+            
+        MDLabel:
+            id: my_key
+            text: ""
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .4}
+            color: rgba(0, 0, 0, 255)
+
+        
+"""
+transfer = """
+MDScreen:
+    name: "transfer"
+    ip: ip
+    
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)
+            on_release:
+                root.manager.transition.direction = "right"
+                root.manager.current = "home"
+        MDLabel:
+            text: "Transfering."
+            font_name: "BPoppins"
+            font_size: "26sp"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            text: "Enter the ip to transfer."
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .79}
+            color: rgba(135, 133, 193, 255)
+            
+        MDFloatLayout:
+            size_hint: .7, .07
+            pos_hint: {"center_x": .5, "center_y": .63}
+            TextInput:
+                id: ip
+                hint_text: "IP-Address"
+                font_name: "MPoppins"
+                size_hint_y: .75
+                pos_hint: {"center_x": .43, "center_y": .5}
+                background_color: 1, 1, 1, 0
+                foreground_color: rgba(0, 0, 59, 255)
+                cursor_color: rgba(0, 0, 59, 255)
+                font_size: "14sp"
+                cursor_width: "2sp"
+                multiline: False
+            MDFloatLayout:
+                pos_hint: {"center_x": .45, "center_y": 0}
+                size_hint_y: .03
+                md_bg_color: rgba(178, 178, 178, 255)
+
+        Button:
+            text: "Start Transfer"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .34}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [5]
+            on_release:
+                app.transfer(ip.text)
+
+"""
+
+
 from kivy.utils import platform
 # from PIL import Image
 if platform == "android":
     from android.permissions import request_permissions, Permission
     from android.storage import primary_external_storage_path
+    request_permissions([Permission.MICROPHONE])
+    request_permissions([Permission.RECORD_AUDIO])
     request_permissions([Permission.INTERNET])
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
@@ -2668,6 +2885,9 @@ current_chat_with = ""
 is_it_my_turn = False
 
 accepted = False
+
+received_secret = False
+sent_secret = False
 
 # 2.tcp.eu.ngrok.io:13117
 # HOST = "5.tcp.eu.ngrok.io"
@@ -2930,6 +3150,8 @@ class ChatApp(MDApp):
     i = 0
     key_genned = False
 
+    started_g = False
+
     # For voice
     hanged = False
     call_initiated = False
@@ -2965,6 +3187,12 @@ class ChatApp(MDApp):
     sound = None
     BLOCK_SIZE = None
 
+    receiving = False
+
+    client_socket = None
+
+    stop_genning = False
+
     def build(self):
         try:
             """
@@ -2988,6 +3216,7 @@ class ChatApp(MDApp):
             self.sound = SoundLoader.load('dial.wav')
 
             self.username = ""
+            self.receiving = False
             self.password = ""
             self.id = ""
             self.gggggg = ""
@@ -3024,8 +3253,13 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(show_id))
             self.screen_manager.add_widget(Builder.load_string(chat))
             self.screen_manager.add_widget(Builder.load_string(all_load))
+
             self.screen_manager.add_widget(Builder.load_string(call))
             self.screen_manager.add_widget(Builder.load_string(hangup))
+
+            self.screen_manager.add_widget(Builder.load_string(home_secret))
+            self.screen_manager.add_widget(Builder.load_string(transfer))
+            self.screen_manager.add_widget(Builder.load_string(receive))
 
             return self.screen_manager
         except Exception as e:
@@ -3057,20 +3291,33 @@ class ChatApp(MDApp):
                 self.show_toaster("You need to accept our ToS.")
                 return
             uid = str(uuid.uuid4())
+            self.connect()
+            self.sock.send(f"USER_EXISTS:{username}".encode())
+            if self.sock.recv(1024) == b"exists":
+                self.show_toaster("Username taken.")
+                self.screen_manager.get_screen("signup").username.text = ""
+                return
+            else:
+                print("okay")
             print("Generating.")
-            threading.Thread(target=self.okok, args=(username, password, uid,)).start()
+            self.stop_genning = False
+            self.do_smt()
+            # time.sleep(2)
+            print("aa")
+            threading.Thread(target=self.gen, args=(username, password, uid,)).start()
+            # threading.Thread(target=self.okok, args=(username, password, uid,)).start()
 
         except:
             pass
 
     @mainthread
     def okok(self, username, password, uid):
-        public, private = rsa.newkeys(1024)
+        # public, private = rsa.newkeys(1024)
         self.connect()
         self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
         time.sleep(0.5)
         print("aaa")
-        self.sock.send(public.save_pkcs1())
+        self.sock.send(self.public_key.save_pkcs1())
         r = self.sock.recv(1024).decode()
         if r == "error":
             self.show_toaster("Username taken. Try again.")
@@ -3081,15 +3328,15 @@ class ChatApp(MDApp):
             return
         else:
             pass
-        enc_priv = Encrypt(message_=private.save_pkcs1().decode(), key=password).encrypt().decode()
+        enc_priv = Encrypt(message_=self.private_key.save_pkcs1().decode(), key=password).encrypt().decode()
         with open("private_key.txt", "w") as file:
             file.write(enc_priv)
         # with open("private_key.txt", "w") as file:
         #     file.write(private.save_pkcs1().decode())  # encrypt private key
         with open("public_key.txt", "w") as file:
-            file.write(public.save_pkcs1().decode())
-        self.public_key = public  # not needed
-        self.private_key = private
+            file.write(self.public_key.save_pkcs1().decode())
+        # self.public_key = public  # not needed
+        # self.private_key = private
         self.id = uid
         self.username = username
         self.password = password
@@ -3100,10 +3347,6 @@ class ChatApp(MDApp):
         self.screen_manager.get_screen("signup").password2.text = ""
 
         self.show_toaster("Account created!")
-    # except Exception as e:
-    #    print("Error23:", e)
-    #    self.screen_manager.current_screen = "home"
-    #    self.show_toaster("Error creating your account! Please try again.")
 
     def login(self, username, password):
         try:
@@ -3199,12 +3442,6 @@ class ChatApp(MDApp):
         except:
             self.screen_manager.current_screen = "login"
             self.show_toaster("Error! Please sign in again.")
-
-    def show_secret_key(self):
-        """
-        Transfer the secret key encrypted as a qr code to another phone. Create a scanning function there to decrypt and save the new secret key.
-        """
-        pass
 
     def change_username(self, username):
         try:
@@ -4098,18 +4335,30 @@ class ChatApp(MDApp):
             try:
                 self.i += 1
                 self.screen_manager.get_screen("progress_bar").progress.value = self.i
+                self.started_g = True
             except:
                 Clock.unschedule(self.loader)
 
     def do_smt(self):
         self.screen_manager.current = "progress_bar"
-        Clock.schedule_interval(self.loader, 0.5)  # 3
+        Clock.schedule_interval(self.loader, 0.4)  # 3
 
-    def gen(self):
-        public, private = rsa.newkeys(1024)
-        self.key_genned = True
-        self.public_key = public
-        self.private_key = private
+    def gen(self, username, password, uid):
+        print("n")
+        while not self.started_g:
+            pass
+        print("bb")
+        public, private = rsa.newkeys(4096)
+
+
+        print("finished")
+
+        if not self.stop_genning:
+            self.key_genned = True
+            self.public_key = public
+            self.private_key = private
+        # self.screen_manager.current = "home"
+            self.okok(username, password, uid)
 
     def connect_voice(self, recipient):
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -4247,6 +4496,63 @@ class ChatApp(MDApp):
             except:
                 pass
         print("okay")
+
+    def receive_sec(self):
+        self.screen_manager.current = "receive"
+        self.receiving = True
+        self.screen_manager.get_screen("receive").my_key.text = self.get_local_ip()
+        # self.start_server()
+        threading.Thread(target=self.start_server).start()
+
+    def start_server(self):
+        print("starte")
+        sec = open("private_key.txt", "rb")
+        data = sec.read()
+        sec.close()
+
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind(("localhost", 8989))
+        server.listen()
+
+        while self.receiving:
+            client, addr = server.accept()
+            print(client)
+            client.send(data)
+            server.close()
+
+            self.show_toaster("Private key received. Please login again.")
+            self.screen_manager.current = "login"
+
+            break
+        server.close()
+
+    def transfer(self, ip):
+        print(ip)
+        self.send_private(ip)
+
+    def send_private(self, ip_addr):
+        try:
+            sock_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock_client.connect((ip_addr, 8989))
+
+            priv = sock_client.recv(1024)
+            sock_client.close()
+            with open("private_key.txt", "wb") as priv_file:
+                priv_file.write(priv)
+        except:
+            self.show_toaster("Invalid server.")
+
+    def get_local_ip(self):
+        return socket.gethostbyname(socket.gethostname())
+
+    def exit_receiving(self):
+        self.receiving = False
+        self.screen_manager.current = "home"
+
+    def stop_key_gen(self):
+        self.stop_genning = True
+        self.screen_manager.current = "signup"
+        self.show_toaster("Stopped.")
 
 
 if __name__ == "__main__":

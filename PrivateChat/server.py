@@ -147,14 +147,14 @@ def broadcast_file(name, client, data, sender):
                     members.append(item["client"])
             print("sending file")
             for person in members:
-                # if person != client:
-                person.send("FILE_INCOMING".encode())
-                time.sleep(.5)
-                person.send(f"{name}".encode())
-                time.sleep(.5)
-                person.send(sender.encode())
-                person.send(data.encode())
-                person.send("DONE:::".encode())
+                if person != client:
+                    person.send("FILE_INCOMING".encode())
+                    time.sleep(.5)
+                    person.send(f"{name}".encode())
+                    time.sleep(.5)
+                    person.send(sender.encode())
+                    person.send(data.encode())
+                    person.send("DONE:::".encode())
 
     except KeyboardInterrupt:
         pass
@@ -178,12 +178,12 @@ def broadcast_image(name, client, data, sender, final):
                         members.append(item["client"])
                 print("sending image")
                 for person in members:
-                    # if person != client:
-                    person.send(f"{name}".encode())
-                    time.sleep(.5)
-                    person.send(sender.encode())
-                    time.sleep(.5)
-                    person.send(data)
+                    if person != client:
+                        person.send(f"{name}".encode())
+                        time.sleep(.5)
+                        person.send(sender.encode())
+                        time.sleep(.5)
+                        person.send(data)
 
         else:
             print("okayx3")
