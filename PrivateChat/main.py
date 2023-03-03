@@ -2870,7 +2870,7 @@ if platform == "android":
     request_permissions([Permission.INTERNET])
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
-Window.size = (310, 580)
+# Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -2899,7 +2899,7 @@ try:
 except:
     HOST, PORT = None, None
 
-HOST, PORT = "localhost", 5000
+# HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -3300,19 +3300,19 @@ class ChatApp(MDApp):
             else:
                 print("okay")
             print("Generating.")
-            self.stop_genning = False
-            self.do_smt()
+            # self.stop_genning = False
+            # self.do_smt()
             # time.sleep(2)
-            print("aa")
-            threading.Thread(target=self.gen, args=(username, password, uid,)).start()
-            # threading.Thread(target=self.okok, args=(username, password, uid,)).start()
+            # print("aa")
+            # threading.Thread(target=self.gen, args=(username, password, uid,)).start()
+            threading.Thread(target=self.okok, args=(username, password, uid,)).start()
 
         except:
             pass
 
     @mainthread
     def okok(self, username, password, uid):
-        # public, private = rsa.newkeys(1024)
+        public, private = rsa.newkeys(1024)
         self.connect()
         self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
         time.sleep(0.5)
@@ -4551,6 +4551,13 @@ class ChatApp(MDApp):
 
     def stop_key_gen(self):
         self.stop_genning = True
+        try:
+            Clock.unschedule(self.loader)
+        except:
+            pass
+        self.screen_manager.get_screen("signup").username.text = ""
+        self.screen_manager.get_screen("signup").password.text = ""
+        self.screen_manager.get_screen("signup").password2.text = ""
         self.screen_manager.current = "signup"
         self.show_toaster("Stopped.")
 
