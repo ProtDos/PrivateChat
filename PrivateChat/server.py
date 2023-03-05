@@ -30,7 +30,7 @@ buffer = []
 def check_hash(hashed, string):
     salt = "%Up=gJDD8dwL^5+W4pgyprt*sd4QEKTM4nfkD$ZW&Zb_?j^wQUGS6kK?2VkfYy7zu?hnN%a9YU!wduhwnUbKpUe*g*Y#aT$=M2KsA6gMFpU+q!!Ha6HN6_&F3DCL@-gweA47FQyq9wu*yd&By%p-dKPGucfjs2-26He-rPZjLEvBn$a-NFeDHD-UP9A23@5@EtZ5+LmeBS@ZUHW9HDy9U@!3BM2^U5nrq+wUjesgEX^SvDgf8Qs8$kjzEacUGx@r"
     dataBase_password = string + salt
-    hashed2 = hashlib.md5(dataBase_password.encode())
+    hashed2 = hashlib.sha256(dataBase_password.encode())
     if hashed == hashed2:
         return True
     return False
@@ -39,7 +39,7 @@ def check_hash(hashed, string):
 def hash_pwd(password):
     salt = "%Up=gJDD8dwL^5+W4pgyprt*sd4QEKTM4nfkD$ZW&Zb_?j^wQUGS6kK?2VkfYy7zu?hnN%a9YU!wduhwnUbKpUe*g*Y#aT$=M2KsA6gMFpU+q!!Ha6HN6_&F3DCL@-gweA47FQyq9wu*yd&By%p-dKPGucfjs2-26He-rPZjLEvBn$a-NFeDHD-UP9A23@5@EtZ5+LmeBS@ZUHW9HDy9U@!3BM2^U5nrq+wUjesgEX^SvDgf8Qs8$kjzEacUGx@r"
     dataBase_password = password + salt
-    hashed = hashlib.md5(dataBase_password.encode())
+    hashed = hashlib.sha256(dataBase_password.encode())
     return hashed.hexdigest()
 
 

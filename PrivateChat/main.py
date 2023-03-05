@@ -2874,7 +2874,7 @@ if platform == "android":
     request_permissions([Permission.INTERNET])
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
-# Window.size = (310, 580)
+Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -2903,7 +2903,7 @@ try:
 except:
     HOST, PORT = None, None
 
-# HOST, PORT = "localhost", 5000
+HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -3316,9 +3316,11 @@ class ChatApp(MDApp):
 
     @mainthread
     def okok(self, username, password, uid):
-        public, private = rsa.newkeys(2048)
+        public, private = rsa.newkeys(1024)  # 2048
         self.public = public
         self.private = private
+        self.public_key = public
+        self.private_key = private
         self.connect()
         self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
         time.sleep(0.5)
