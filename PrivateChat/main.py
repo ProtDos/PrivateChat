@@ -25,8 +25,12 @@ import rsa as rr
 import rsa
 import hashlib
 
+# QR-Scanning
+import numpy
+import cv2
+from pyzbar.pyzbar import decode
+
 # Voice
-# import pyaudio
 try:
     import sounddevice as sd
 except:
@@ -577,6 +581,17 @@ MDScreen:
                 pos_hint: {"center_x": .45, "center_y": 0}
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
+            MDIconButton:
+                icon: "qrcode-scan"
+                color: 0, 0, 0, 0.4
+                text_color: 0, 0, 0, 0.4
+                theme_text_color: "Custom"
+                pos_hint: {"center_x": .85, "center_y": .5}
+                on_release:
+                    root.manager.transition.direction = "left"
+                    root.manager.current = "qr-scan"
+                    # app.start_qr()
+        # qrcode-scan
 
         Button:
             text: "Chat"
@@ -2863,6 +2878,40 @@ MDScreen:
 
 """
 
+qr_scan = """
+MDScreen:
+    name: "qr-scan"
+    camera: camera
+    
+    MDIconButton:
+        icon: "arrow-left"
+        pos_hint: {"center_y": .95}
+        user_font_size: "30sp"
+        theme_text_color: "Custom"
+        text_color: rgba(26, 24, 58, 255)
+        on_release:
+            root.manager.transition.direction = "right"
+            root.manager.current = "home"
+    
+    BoxLayout:
+        orientation: 'vertical'
+        Camera:
+            id: camera
+            resolution: (640, 480)
+            play: True
+            canvas.before:
+                PushMatrix
+                Rotate:
+                    angle: -90
+                    origin: self.center
+            canvas.after:
+                PopMatrix
+        Button:
+            text: 'Capture'
+            size_hint_y: None
+            height: '48dp'
+            on_press: app.capture()
+"""
 
 from kivy.utils import platform
 # from PIL import Image
@@ -3265,6 +3314,8 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(transfer))
             self.screen_manager.add_widget(Builder.load_string(receive))
 
+            self.screen_manager.add_widget(Builder.load_string(qr_scan))
+
             return self.screen_manager
         except Exception as e:
             print("Error21:", e)
@@ -3277,7 +3328,7 @@ class ChatApp(MDApp):
             print("Error22:", e)
             self.screen_manager.current_screen = "main"
             self.show_toaster("Couldn't connect to server. Check connection. ")
-
+    """
     def sign_up(self, username, password, password2):
         try:
             global user
@@ -3313,6 +3364,66 @@ class ChatApp(MDApp):
 
         except:
             pass
+    """
+
+    def sign_up(self, username, password, password2):
+        try:
+            self.connect()
+            global user
+            self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {username}"
+            self.screen_manager.get_screen("signup").username.text = ""
+            self.screen_manager.get_screen("signup").password.text = ""
+            self.screen_manager.get_screen("signup").password2.text = ""
+            # TODO: add checking
+            if password != password2:
+                self.screen_manager.current = "bad"
+                return
+            if not strength_test(password)[0]:
+                self.show_toaster("Password isn't strong enough.")
+                self.screen_manager.get_screen("signup").password.text = ""
+                self.screen_manager.get_screen("signup").password2.text = ""
+                self.screen_manager.current = "signup"
+                return
+            uid = str(uuid.uuid4())
+            public, private = rr.newkeys(1024)  # 2048
+            self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
+            print("nah bruh")
+            self.sock.send(public.save_pkcs1())
+            r = self.sock.recv(1024).decode()
+            if r == "error":
+                self.show_toaster("Username taken. Try again.")
+                return
+            elif r == "errorv2":
+                self.show_toaster("ID already used - internal error. Try again later.")
+                return
+            else:
+                pass
+            with open("private_key.txt", "w") as file:
+                file.write(private.save_pkcs1().decode())
+            with open("public_key.txt", "w") as file:
+                file.write(public.save_pkcs1().decode())
+            self.public_key = public  # not needed
+            self.private_key = private
+            """
+            with open("data/username.txt", "w") as file:
+                file.w rite(username)
+            with open("data/auth.txt", "w") as file:
+                file.write(Encrypt(message_=password, key=password).encrypt().decode())
+            with open("data/id.txt", "w") as file:
+                uid = str(uuid.uuid4())
+                file.write(uid)
+            """
+            self.id = uid
+            self.username = username
+            user = username
+            self.password = password
+            self.super_dubba_key = self.password
+            self.screen_manager.current = "home"
+
+            self.show_toaster("Account created!")
+        except:
+            self.screen_manager.current_screen = "home"
+            self.show_toaster("Error creating your account! Please try again.")
 
     @mainthread
     def okok(self, username, password, uid):
@@ -3764,7 +3875,7 @@ class ChatApp(MDApp):
                 self.screen_manager.get_screen("group_join").butt.hint_text = "Not available"
         except Exception as e:
             print("Error9:", e)
-            self.show_toaster("Error occured while showing groups.")
+            self.show_toaster("Error occurred while showing groups.")
 
     def join_group(self, group_id):
         try:
@@ -4038,7 +4149,7 @@ class ChatApp(MDApp):
                 continue
 
     @mainthread
-    def add_file(self, path, fro):
+    def add_file(self, path, _):
         self.screen_manager.get_screen("chat").chat_list.add_widget(
             AddFile(file_source=path))
 
@@ -4048,7 +4159,7 @@ class ChatApp(MDApp):
             AddFileCommand(file_source=path))
 
     @mainthread
-    def add2(self, message, fro):
+    def add2(self, message, _):
         try:
             global size, halign, value
             if message != "":
@@ -4358,7 +4469,6 @@ class ChatApp(MDApp):
         print("bb")
         public, private = rsa.newkeys(4096)
 
-
         print("finished")
 
         if not self.stop_genning:
@@ -4370,7 +4480,7 @@ class ChatApp(MDApp):
 
     def connect_voice(self, recipient):
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect(('localhost', 5000))
+        self.client_socket.connect((HOST, PORT))
         self.client_socket.send(self.username.encode())
         print("aaa")
         time.sleep(.5)
@@ -4568,6 +4678,36 @@ class ChatApp(MDApp):
         self.screen_manager.get_screen("signup").password2.text = ""
         self.screen_manager.current = "signup"
         self.show_toaster("Stopped.")
+
+    def capture(self):
+        '''
+        Function to capture the images and give them the names
+        according to their captured time and date.
+        '''
+        camera = self.screen_manager.get_screen("qr-scan").camera
+        texture = camera.texture
+        size = texture.size
+        pixels = texture.pixels
+        print(texture, size, pixels)
+        pil_image = Image.frombytes(mode='RGBA', size=size, data=pixels)
+        self.scan(pil_image)
+        print("Captured")
+
+    def scan(self, path):
+        print(path)
+        path = numpy.array(path)
+        path = cv2.flip(path, 0)
+        try:
+            result = decode(path)
+            print(result)
+            a = result[0].data.decode()
+            print(a)
+            self.screen_manager.current = "home"
+            self.show_toaster("Found.")
+        except Exception as e:
+            print(e)
+            print("Nothing found.")
+            self.show_toaster("QR-Code not found.")
 
 
 if __name__ == "__main__":

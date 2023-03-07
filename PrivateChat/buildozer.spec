@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.1.0,kivy_garden,pillow,numpy,sounddevice,pygments,hostpython3,openssl,certifi,cffi,chardet,charset_normalizer,android,colorama,cryptography,docutils,idna,kivymd==1.1.1,password_strength,plyer,pyasn1,pycparser,pypiwin32,pypng,qrcode,requests,rsa,six,typing_extensions,urllib3
+requirements = python3,kivy==2.1.0,kivy_garden,pillow,sounddevice,pygments,numpy,hostpython3,openssl,certifi,cffi,chardet,charset_normalizer,android,colorama,cryptography,docutils,idna,kivymd==1.1.1,password_strength,plyer,pyasn1,pycparser,pypiwin32,pypng,qrcode,requests,rsa,six,typing_extensions,urllib3,opencv,pyzbar
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -98,7 +98,7 @@ android.presplash_color = #FFFFFF
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
-android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
+android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, MICROPHONE, RECORD_AUDIO
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
