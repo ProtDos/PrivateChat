@@ -4689,7 +4689,7 @@ class ChatApp(MDApp):
         size = texture.size
         pixels = texture.pixels
         print(texture, size, pixels)
-        pil_image = Image.frombytes(mode='RGBA', size=size, data=pixels)
+        pil_image = IImage.frombytes(mode='RGBA', size=size, data=pixels)
         self.scan(pil_image)
         print("Captured")
 
