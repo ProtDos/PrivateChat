@@ -2923,7 +2923,7 @@ if platform == "android":
     request_permissions([Permission.INTERNET])
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
-Window.size = (310, 580)
+# Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -2952,7 +2952,7 @@ try:
 except:
     HOST, PORT = None, None
 
-HOST, PORT = "localhost", 5000
+# HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
