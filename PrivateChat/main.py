@@ -30,12 +30,6 @@ import numpy
 import cv2
 from pyzbar.pyzbar import decode
 
-# Voice
-try:
-    import sounddevice as sd
-except:
-    pass
-
 # Other
 import threading  # Threaded tasks
 import socket  # To connect to the server
@@ -538,6 +532,7 @@ MDScreen:
 chat_private = """
 MDScreen:
     name: "chat_private"
+    name__: name__
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -566,7 +561,7 @@ MDScreen:
             size_hint: .7, .07
             pos_hint: {"center_x": .5, "center_y": .63}
             TextInput:
-                id: name
+                id: name__
                 hint_text: "Recipient"
                 font_name: "MPoppins"
                 size_hint_y: .75
@@ -607,7 +602,7 @@ MDScreen:
                     pos: self.pos
                     radius: [5]
             on_release:
-                app.create_chat(name.text)
+                app.create_chat(name__.text)
 """
 chat_sec = """
 #:import Clipboard kivy.core.clipboard.Clipboard
@@ -4702,7 +4697,8 @@ class ChatApp(MDApp):
             print(result)
             a = result[0].data.decode()
             print(a)
-            self.screen_manager.current = "home"
+            self.screen_manager.current = "chat_private"
+            self.screen_manager.get_screen("chat_private").name__.text = a
             self.show_toaster("Found.")
         except Exception as e:
             print(e)
