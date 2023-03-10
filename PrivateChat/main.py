@@ -2929,7 +2929,7 @@ MDScreen:
         
         Camera:
             id: camera
-            resolution: (self.size)
+            resolution: (640, 480)
             allow_stretch: True
             keep_ratio: True
             play: False
@@ -2947,10 +2947,7 @@ from kivy.utils import platform
 if platform == "android":
     from android.permissions import request_permissions, Permission
     from android.storage import primary_external_storage_path
-    # request_permissions([Permission.MICROPHONE])
-    # request_permissions([Permission.RECORD_AUDIO])
-    request_permissions([Permission.INTERNET])
-    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO, Permission.CAMERA, Permission.INTERNET])
 
 # Window.size = (310, 580)
 
