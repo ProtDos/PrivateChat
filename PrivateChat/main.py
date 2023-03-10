@@ -2929,10 +2929,17 @@ MDScreen:
         
         Camera:
             id: camera
-            resolution: (640, 480)
+            # resolution: (640, 480)
             allow_stretch: True
             keep_ratio: True
             play: False
+            canvas.before:
+                PushMatrix
+                Rotate:
+                    angle: -90
+                    origin: self.center
+            canvas.after:
+                PopMatrix
             
             
         Button:
@@ -2941,6 +2948,10 @@ MDScreen:
             height: '48dp'
             on_press: app.capture()
 """
+
+# TODO: Loading screen for key generation
+# TODO: full-screen camera
+# TODO: Encrypted Calling
 
 from kivy.utils import platform
 # from PIL import Image
@@ -3354,6 +3365,7 @@ class ChatApp(MDApp):
             print("Error22:", e)
             self.screen_manager.current_screen = "main"
             self.show_toaster("Couldn't connect to server. Check connection. ")
+
     """
     def sign_up(self, username, password, password2):
         try:
@@ -3394,16 +3406,23 @@ class ChatApp(MDApp):
 
     def sign_up(self, username, password, password2):
         try:
+            # local check of username:
+            if len(username) > 10:
+                self.show_toaster("Username too long.")
+                return
+            if " " in username:
+                self.show_toaster("No space allowed.")
+                return
+            if password2 != password:
+                self.show_toaster("Passwords do not match.")
+                return
+
             self.connect()
             global user
             self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {username}"
             self.screen_manager.get_screen("signup").username.text = ""
             self.screen_manager.get_screen("signup").password.text = ""
             self.screen_manager.get_screen("signup").password2.text = ""
-            # TODO: add checking
-            if password != password2:
-                self.screen_manager.current = "bad"
-                return
             if not strength_test(password)[0]:
                 self.show_toaster("Password isn't strong enough.")
                 self.screen_manager.get_screen("signup").password.text = ""
@@ -3414,6 +3433,7 @@ class ChatApp(MDApp):
             public, private = rr.newkeys(1024)  # 2048
             self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
             print("nah bruh")
+            time.sleep(.5)
             self.sock.send(public.save_pkcs1())
             r = self.sock.recv(1024).decode()
             if r == "error":
@@ -3421,6 +3441,9 @@ class ChatApp(MDApp):
                 return
             elif r == "errorv2":
                 self.show_toaster("ID already used - internal error. Try again later.")
+                return
+            elif r == "errorv3":
+                self.show_toaster("Invalid username.")
                 return
             else:
                 pass
@@ -4553,6 +4576,7 @@ class ChatApp(MDApp):
         print("bbroken")
     """
 
+    @mainthread
     def record(self):
         try:
             with sd.InputStream(channels=self.CHANNELS, blocksize=self.BLOCK_SIZE) as stream:
@@ -4572,6 +4596,7 @@ class ChatApp(MDApp):
             print("cc", e)
             toast("Couldn't start recording")
 
+    @mainthread
     def receive_voice(self):
         try:
             with sd.OutputStream(channels=self.CHANNELS, blocksize=self.BLOCK_SIZE) as stream:
@@ -4749,9 +4774,15 @@ class ChatApp(MDApp):
             self.show_toaster("QR-Code not found.")
 
     def start_qr(self):
-        self.screen_manager.get_screen("qr-scan").camera.play = True
-        self.screen_manager.transition.direction = "left"
-        self.screen_manager.current = "qr-scan"
+        try:
+            self.screen_manager.get_screen("qr-scan").camera.play = True
+        except:
+            pass
+        try:
+            self.screen_manager.transition.direction = "left"
+            self.screen_manager.current = "qr-scan"
+        except:
+            pass
 
     def stop_qr(self):
         self.screen_manager.get_screen("qr-scan").camera.play = False
