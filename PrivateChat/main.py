@@ -583,9 +583,9 @@ MDScreen:
                 theme_text_color: "Custom"
                 pos_hint: {"center_x": .85, "center_y": .5}
                 on_release:
-                    root.manager.transition.direction = "left"
-                    root.manager.current = "qr-scan"
-                    # app.start_qr()
+                    # root.manager.transition.direction = "left"
+                    # root.manager.current = "qr-scan"
+                    app.start_qr()
         # qrcode-scan
 
         Button:
@@ -1883,7 +1883,7 @@ MDScreen:
             id: img
             source: "qr_code_id.png"
             size_hint: (None, None)
-            size: 200, 200
+            size: 400, 400
             pos_hint: {"center_y": .55, "center_x": .5}
 """
 show_id2 = """
@@ -2873,7 +2873,7 @@ MDScreen:
 
 """
 
-qr_scan = """
+qr_scan__ = """
 MDScreen:
     name: "qr-scan"
     camera: camera
@@ -2885,15 +2885,16 @@ MDScreen:
         theme_text_color: "Custom"
         text_color: rgba(26, 24, 58, 255)
         on_release:
-            root.manager.transition.direction = "right"
-            root.manager.current = "home"
+            app.stop_qr()
+            # root.manager.transition.direction = "right"
+            # root.manager.current = "home"
     
     BoxLayout:
         orientation: 'vertical'
         Camera:
             id: camera
             resolution: (640, 480)
-            play: True
+            play: False
             canvas.before:
                 PushMatrix
                 Rotate:
@@ -2901,6 +2902,39 @@ MDScreen:
                     origin: self.center
             canvas.after:
                 PopMatrix
+        Button:
+            text: 'Capture'
+            size_hint_y: None
+            height: '48dp'
+            on_press: app.capture()
+"""
+qr_scan = """
+MDScreen:
+    name: "qr-scan"
+    camera: camera
+    
+    BoxLayout:
+        orientation: 'vertical'
+        
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)            
+            on_release:
+                app.stop_qr()
+                # root.manager.transition.direction = "right"
+                # root.manager.current = "home"
+        
+        Camera:
+            id: camera
+            resolution: self.size
+            allow_stretch: True
+            keep_ratio: True
+            play: False
+            
+            
         Button:
             text: 'Capture'
             size_hint_y: None
@@ -4523,49 +4557,57 @@ class ChatApp(MDApp):
     """
 
     def record(self):
-        with sd.InputStream(channels=self.CHANNELS, blocksize=self.BLOCK_SIZE) as stream:
-            print('start recording')
-            while not self.hanged:
-                try:
-                    data, overflowed = stream.read(self.BLOCK_SIZE)
-                    if overflowed:
-                        print('Input stream overflowed!')
-                    self.client_socket.sendall(data)
-                except Exception as e:
-                    print(e)
-                    break
-            stream.close()
-        print("cbroken")
+        try:
+            with sd.InputStream(channels=self.CHANNELS, blocksize=self.BLOCK_SIZE) as stream:
+                print('start recording')
+                while not self.hanged:
+                    try:
+                        data, overflowed = stream.read(self.BLOCK_SIZE)
+                        if overflowed:
+                            print('Input stream overflowed!')
+                        self.client_socket.sendall(data)
+                    except Exception as e:
+                        print(e)
+                        break
+                stream.close()
+            print("cbroken")
+        except Exception as e:
+            print("cc", e)
+            toast("Couldn't start recording")
 
     def receive_voice(self):
-        with sd.OutputStream(channels=self.CHANNELS, blocksize=self.BLOCK_SIZE) as stream:
-            print('start playing')
-            self.client_socket.settimeout(5)
-            while not self.hanged:
-                try:
-                    data = self.client_socket.recv(self.BLOCK_SIZE)
-                    if not data:
-                        break
-                    self.client_socket.settimeout(1)
+        try:
+            with sd.OutputStream(channels=self.CHANNELS, blocksize=self.BLOCK_SIZE) as stream:
+                print('start playing')
+                self.client_socket.settimeout(5)
+                while not self.hanged:
                     try:
-                        self.sound.stop()
-                    except:
-                        pass
-                    self.call_started = True
-                    stream.write(np.frombuffer(data, dtype=np.float32))
-                except Exception as e:
-                    print(e)
-                    break
-            stream.stop()
-        self.hangup()
-        print("a", self.client_socket.gettimeout())
-        if self.call_started:
-            print("Recpipient ended call.")
-            # toast("Recipient ended call.")
-        else:
-            print("Couldn't connect.")
-            # toast("Normal end.")
-        print("bbroken")
+                        data = self.client_socket.recv(self.BLOCK_SIZE)
+                        if not data:
+                            break
+                        self.client_socket.settimeout(1)
+                        try:
+                            self.sound.stop()
+                        except:
+                            pass
+                        self.call_started = True
+                        stream.write(np.frombuffer(data, dtype=np.float32))
+                    except Exception as e:
+                        print(e)
+                        break
+                stream.stop()
+            self.hangup()
+            print("a", self.client_socket.gettimeout())
+            if self.call_started:
+                print("Recpipient ended call.")
+                # toast("Recipient ended call.")
+            else:
+                print("Couldn't connect.")
+                # toast("Normal end.")
+            print("bbroken")
+        except Exception as e:
+            print("bb", e)
+            toast("Couldn't receive audio.")
 
     def call(self, recipient):
         if recipient != "":
@@ -4573,19 +4615,23 @@ class ChatApp(MDApp):
             self.sock.send(f"USER_EXISTS:{recipient}".encode())
             if self.sock.recv(1024) == b"exists":
                 self.sound.play()
-                self.hanged = False
-                self.call_initiated = True
-                self.connect_voice(recipient)
-                print(recipient)
-                a = threading.Thread(target=self.record)
-                b = threading.Thread(target=self.receive_voice)
-                self.threads.append(a)
-                self.threads.append(b)
-                a.start()
-                b.start()
-                self.screen_manager.get_screen("call").name_.text = ""
-                self.screen_manager.get_screen("hangup").caller_id.text = recipient
-                self.screen_manager.current = "hangup"
+                try:
+                    self.hanged = False
+                    self.call_initiated = True
+                    self.connect_voice(recipient)
+                    print(recipient)
+                    a = threading.Thread(target=self.record)
+                    b = threading.Thread(target=self.receive_voice)
+                    self.threads.append(a)
+                    self.threads.append(b)
+                    a.start()
+                    b.start()
+                    self.screen_manager.get_screen("call").name_.text = ""
+                    self.screen_manager.get_screen("hangup").caller_id.text = recipient
+                    self.screen_manager.current = "hangup"
+                except:
+                    self.sound.stop()
+                    self.screen_manager.current = "call"
             else:
                 toast("Invalid.")
         else:
@@ -4704,6 +4750,16 @@ class ChatApp(MDApp):
             print(e)
             print("Nothing found.")
             self.show_toaster("QR-Code not found.")
+
+    def start_qr(self):
+        self.screen_manager.get_screen("qr-scan").camera.play = True
+        self.screen_manager.transition.direction = "left"
+        self.screen_manager.current = "qr-scan"
+
+    def stop_qr(self):
+        self.screen_manager.get_screen("qr-scan").camera.play = False
+        self.screen_manager.transition.direction = "right"
+        self.screen_manager.current = "chat_private"
 
 
 if __name__ == "__main__":
