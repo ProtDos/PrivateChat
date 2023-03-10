@@ -2929,7 +2929,7 @@ MDScreen:
         
         Camera:
             id: camera
-            resolution: self.size
+            resolution: (self.size)
             allow_stretch: True
             keep_ratio: True
             play: False
