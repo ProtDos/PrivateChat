@@ -3508,8 +3508,12 @@ class ChatApp(MDApp):
             return
         else:
             pass
+        """
         with open("private_key.txt", "w") as file:
             file.write(self.private_key.save_pkcs1().decode())
+        """
+        with open("private_key.txt", "w") as file:
+            file.write(Encrypt(message_=self.private_key.save_pkcs1().decode(), key=self.password).encrypt().decode())
         with open("public_key.txt", "w") as file:
             file.write(self.public_key.save_pkcs1().decode())
 
@@ -3604,7 +3608,7 @@ class ChatApp(MDApp):
                     with open("private_key.txt", "r") as file:
                         a = file.read()
                         dec_priv = Decrypt(message_=a, key=password).decrypt().encode()
-                        print(dec_priv)
+                        # print(dec_priv)
                         if dec_priv is None:
                             self.show_toaster("Private key couldn't be decrypted.")
                             return
