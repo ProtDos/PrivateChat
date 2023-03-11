@@ -2949,7 +2949,6 @@ MDScreen:
             on_press: app.capture()
 """
 
-# TODO: Loading screen for key generation
 # TODO: full-screen camera
 # TODO: Encrypted Calling
 
@@ -3258,6 +3257,8 @@ class ChatApp(MDApp):
 
     username = None
     password = None
+    public = None
+    private = None
     id = None
     gggggg = None
     rooms = None
@@ -3417,6 +3418,9 @@ class ChatApp(MDApp):
                 self.show_toaster("Passwords do not match.")
                 return
 
+            self.username = username
+            self.password = password
+
             self.connect()
             global user
             self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {username}"
@@ -3430,7 +3434,18 @@ class ChatApp(MDApp):
                 self.screen_manager.current = "signup"
                 return
             uid = str(uuid.uuid4())
-            public, private = rr.newkeys(1024)  # 2048
+            self.id = uid
+            self.started_g = False
+            self.key_genned = False
+            self.screen_manager.current = "progress_bar"
+            self.do_smt()
+            print("ye")
+            # time.sleep(2)
+
+            threading.Thread(target=self.ttest).start()
+
+            """
+            public, private = rr.newkeys(4096)  # 2048
             self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
             print("nah bruh")
             time.sleep(.5)
@@ -3453,15 +3468,6 @@ class ChatApp(MDApp):
                 file.write(public.save_pkcs1().decode())
             self.public_key = public  # not needed
             self.private_key = private
-            """
-            with open("data/username.txt", "w") as file:
-                file.w rite(username)
-            with open("data/auth.txt", "w") as file:
-                file.write(Encrypt(message_=password, key=password).encrypt().decode())
-            with open("data/id.txt", "w") as file:
-                uid = str(uuid.uuid4())
-                file.write(uid)
-            """
             self.id = uid
             self.username = username
             user = username
@@ -3470,13 +3476,51 @@ class ChatApp(MDApp):
             self.screen_manager.current = "home"
 
             self.show_toaster("Account created!")
-        except:
+            """
+        except Exception as e:
+            print(e)
             self.screen_manager.current_screen = "home"
             self.show_toaster("Error creating your account! Please try again.")
 
+    def ttest(self):
+        while not self.started_g:
+            pass
+        public, private = rr.newkeys(2048)  # 4096
+        self.key_genned = True
+        self.public_key = public
+        self.private_key = private
+        print("done")
+
+    def mama(self):
+        self.sock.send(f"SIGNUP:::{self.username}:::{hash_pwd(self.password)}:::{self.id}".encode())
+        print("nah bruh")
+        time.sleep(.5)
+        self.sock.send(self.public_key.save_pkcs1())
+        r = self.sock.recv(1024).decode()
+        if r == "error":
+            self.show_toaster("Username taken. Try again.")
+            return
+        elif r == "errorv2":
+            self.show_toaster("ID already used - internal error. Try again later.")
+            return
+        elif r == "errorv3":
+            self.show_toaster("Invalid username.")
+            return
+        else:
+            pass
+        with open("private_key.txt", "w") as file:
+            file.write(self.private_key.save_pkcs1().decode())
+        with open("public_key.txt", "w") as file:
+            file.write(self.public_key.save_pkcs1().decode())
+
+        self.super_dubba_key = self.password
+        self.screen_manager.current = "home"
+
+        self.show_toaster("Account created!")
+
     @mainthread
     def okok(self, username, password, uid):
-        public, private = rsa.newkeys(1024)  # 2048
+        public, private = rsa.newkeys(4098)  # 2048
         self.public = public
         self.private = private
         self.public_key = public
@@ -4499,6 +4543,7 @@ class ChatApp(MDApp):
     def loader(self, *args):
         if self.key_genned:
             Clock.unschedule(self.loader)
+            self.mama()
         else:
             try:
                 self.i += 1
@@ -4508,8 +4553,9 @@ class ChatApp(MDApp):
                 Clock.unschedule(self.loader)
 
     def do_smt(self):
+        self.i = 0
         self.screen_manager.current = "progress_bar"
-        Clock.schedule_interval(self.loader, 0.4)  # 3
+        Clock.schedule_interval(self.loader, 0.05)  # 3
 
     def gen(self, username, password, uid):
         print("n")
@@ -4743,10 +4789,10 @@ class ChatApp(MDApp):
         self.show_toaster("Stopped.")
 
     def capture(self):
-        '''
+        """
         Function to capture the images and give them the names
         according to their captured time and date.
-        '''
+        """
         camera = self.screen_manager.get_screen("qr-scan").camera
         texture = camera.texture
         size = texture.size
@@ -4765,6 +4811,7 @@ class ChatApp(MDApp):
             print(result)
             a = result[0].data.decode()
             print(a)
+            self.screen_manager.get_screen("qr-scan").camera.play = False
             self.screen_manager.current = "chat_private"
             self.screen_manager.get_screen("chat_private").name__.text = a
             self.show_toaster("Found.")
