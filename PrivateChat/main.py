@@ -25,6 +25,9 @@ import rsa as rr
 import rsa
 import hashlib
 
+# Post-Quantum Cryptography
+import pq_ntru
+
 # QR-Scanning
 import numpy
 import cv2
@@ -2949,7 +2952,6 @@ MDScreen:
             on_press: app.capture()
 """
 
-# TODO: full-screen camera
 # TODO: Encrypted Calling
 
 from kivy.utils import platform
@@ -2959,10 +2961,12 @@ if platform == "android":
     from android.storage import primary_external_storage_path
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO, Permission.CAMERA, Permission.INTERNET])
 
-# Window.size = (310, 580)
+Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
+
+# print(f"Using pq_ntru version {pq_ntru.__version__}")
 
 ######################### BASIC VARIABLES #########################
 group_key = ""
@@ -2988,7 +2992,7 @@ try:
 except:
     HOST, PORT = None, None
 
-# HOST, PORT = "localhost", 5000
+HOST, PORT = "localhost", 5000
 
 
 ######################### Chat #########################
@@ -3234,6 +3238,23 @@ def decode_file(enc_string, name, key):
         return a
 
 
+def hashCrackWordlist(userHash):
+    h = hashlib.sha256
+
+    with open("Wordlist.txt", "rb") as infile:
+        for line in infile:
+            try:
+                line = line.strip()
+                lineHash = h(line).hexdigest()
+
+                if str(lineHash) == str(userHash.lower()):
+                    return line.decode()
+            except:
+                pass
+
+        return None
+
+
 ######################### Main #########################
 class ChatApp(MDApp):
     i = 0
@@ -3416,6 +3437,16 @@ class ChatApp(MDApp):
                 return
             if password2 != password:
                 self.show_toaster("Passwords do not match.")
+                return
+            if hashCrackWordlist(password) is not None:
+                self.show_toaster("Password isn't strong enough.")
+                return
+            ### Check if user exists
+            self.connect()
+            self.sock.send(f"USER_EXISTS:{username}".encode())
+            if self.sock.recv(1024) == b"exists":
+                self.screen_manager.get_screen("signup").username.text = ""
+                self.show_toaster("Username already exists.")
                 return
 
             self.username = username
@@ -4559,7 +4590,7 @@ class ChatApp(MDApp):
     def do_smt(self):
         self.i = 0
         self.screen_manager.current = "progress_bar"
-        Clock.schedule_interval(self.loader, 0.05)  # 3
+        Clock.schedule_interval(self.loader, 0.1)  # 3
 
     def gen(self, username, password, uid):
         print("n")
