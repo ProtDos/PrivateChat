@@ -25,9 +25,6 @@ import rsa as rr
 import rsa
 import hashlib
 
-# Post-Quantum Cryptography
-import pq_ntru
-
 # QR-Scanning
 import numpy
 import cv2
