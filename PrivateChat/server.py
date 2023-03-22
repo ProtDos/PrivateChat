@@ -5,6 +5,7 @@ import time
 import csv
 import pandas as pd
 import hashlib
+import string
 
 
 host = "localhost"
@@ -25,6 +26,14 @@ private_chats = []
 
 clients__pr = {}
 buffer = []
+
+
+def check_username(name):
+    every = string.printable[:-6]
+    for letter in name:
+        if letter not in every:
+            return False
+    return True
 
 
 def check_hash(hashed, string):
@@ -55,6 +64,18 @@ def check_username_exist(value):
         data = [row for row in reader]
         for row in data:
             if row['username'] == value:
+                return True
+        return False
+
+
+def check_group_name_exists(value):
+    print(value)
+    with open('group_db.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        data = [row for row in reader]
+        for row in data:
+            print(row["group_name"])
+            if row['group_name'] == value:
                 return True
         return False
 
@@ -415,12 +436,15 @@ def fuck_around(client, address):
             _, username, pas, idd = xxx.split(":::")
             public_key = client.recv(1024).decode()
 
+            if len(username) > 10 or " " in username or not check_username(username):
+                client.send(b"errorv3")
+
             print(username, pas, idd)
             if check_username_exist(username):
-                client.send("error".encode())
+                client.send(b"error")
             else:
                 if check_id_exist(idd):
-                    client.send("errorv2".encode())
+                    client.send(b"errorv2")
                 else:
                     with open("database.csv", "a") as data_file_:
                         data_file_.write(f"{username},{pas},{idd}\n")
@@ -516,6 +540,23 @@ def fuck_around(client, address):
         elif xxx.startswith("START_VOICE:"):
             print("VOICE REQUEST RECEIVED.")
             threading.Thread(target=start_voice, args=(client,))
+        elif xxx.startswith("CREATE_GROUP:"):
+            _, group_name, username, paswd = xxx.split(":")
+            if check_username_exist(username) and get_password(username) == paswd:
+                if check_group_name_exists(group_name):
+                    client.send(b"group_exists")
+                else:
+                    with open("group_db.csv", "a") as g_gile:
+                        g_gile.write(f"{group_name},{username}\n")
+                    client.send(b"success")
+            else:
+                client.send(b"error")
+        elif xxx.startswith("VALID_GROUP_NAME:"):
+            _, g_name = xxx.split(":")
+            if check_group_name_exists(g_name):
+                client.send(b"yes")
+            else:
+                client.send(b"error")
         else:
             if xxx.startswith("ID:::::"):
                 _, nickname, group_id = xxx.split("|||")

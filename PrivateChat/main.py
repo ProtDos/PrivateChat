@@ -46,6 +46,9 @@ import requests
 from PIL import Image as IImage
 import numpy as np
 
+# Request Perms
+from kivy.utils import platform
+
 """
 - Encrypt Private Messaging
     - https://www.youtube.com/watch?v=U_Q1vqaJi34&t=1070s
@@ -477,8 +480,9 @@ MDScreen:
                     front_name: "BPoppins"
                     color: rgba(52, 0, 231, 255)
                     on_release:
-                        root.manager.transition.direction = "left"
-                        root.manager.current = "call"
+                        app.show_toaster("This feature isn't supported yet")
+                        # root.manager.transition.direction = "left"
+                        # root.manager.current = "call"
                     canvas.before:
                         Color:
                             rgb: rgba(52, 0, 231, 255)
@@ -581,7 +585,7 @@ MDScreen:
                 color: 0, 0, 0, 0.4
                 text_color: 0, 0, 0, 0.4
                 theme_text_color: "Custom"
-                pos_hint: {"center_x": .85, "center_y": .5}
+                pos_hint: {"center_x": 1, "center_y": .5}
                 on_release:
                     # root.manager.transition.direction = "left"
                     # root.manager.current = "qr-scan"
@@ -660,6 +664,7 @@ MDScreen:
                 theme_text_color: "Custom"
                 text_color: rgba(26, 24, 58, 255)
                 on_release:
+                    app.sock.close()
                     root.manager.transition.direction = "right"
                     root.manager.current = "home"
             MDIconButton:
@@ -1478,6 +1483,7 @@ MDScreen:
 new_group_join = """
 MDScreen:
     name: "new_group_join"
+    name_: name_
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -1506,7 +1512,7 @@ MDScreen:
             size_hint: .7, .07
             pos_hint: {"center_x": .5, "center_y": .63}
             TextInput:
-                id: name
+                id: name_
                 hint_text: "Group Key"
                 font_name: "MPoppins"
                 size_hint_y: .75
@@ -1536,7 +1542,7 @@ MDScreen:
                     pos: self.pos
                     radius: [5]
             on_release:
-                app.join_new_group(name.text)
+                app.join_new_group(name_.text)
 
 
 """
@@ -2229,6 +2235,71 @@ chat = """
     height: 600
     
 <AddFile>
+    # size_hint_y: None
+    # pos_hint: {"x": .02}
+    # height: self.texture_size[1]
+    # padding: 12, 10
+    
+    size_hint_y: None
+    pos_hint: {"x": .02}
+    padding: 12, 10
+    theme_text_color: "Custom"
+    
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1, 1)
+        RoundedRectangle:
+            size: self.width, self.height
+            pos: self.pos
+            radius: [23, 23, 23, 0]
+            
+    MDBoxLayout:
+        orientation: 'vertical'
+        adaptive_height: True
+        MDBoxLayout:
+            MDLabel:
+                id: llabel
+                text: root.file_source
+                font_size: 12
+                color: (0, 0, 1, 1)
+                halign: 'right'
+                size_hint_x: .22
+            MDIconButton:
+                icon: "download"
+                on_release:
+                    app.download(llabel.text)
+                    
+<AddFileCommand>
+    size_hint_y: None
+    pos_hint: {"right": .98}
+    padding: 12, 10
+    theme_text_color: "Custom"
+    
+    canvas.before:
+        Color:
+            rgb: rgba(52, 0, 234, 255)
+        RoundedRectangle:
+            size: self.width, self.height
+            pos: self.pos
+            radius: [23, 23, 0, 23]
+            
+    MDBoxLayout:
+        orientation: 'horizontal'
+        adaptive_height: True
+        # size_hint: None, None
+        MDBoxLayout:
+            MDLabel:
+                id: llabel
+                text: root.file_source
+                font_size: 12
+                color: 1, 1, 1, 1
+                halign: 'right'
+                size_hint_x: .22
+            MDIconButton:
+                icon: "download"
+                on_release:
+                    app.download(llabel.text)
+<AddAudio>
     size_hint_y: None
     pos_hint: {"x": .02}
     # height: self.texture_size[1]
@@ -2255,8 +2326,8 @@ chat = """
                 icon: "download"
                 on_release:
                     app.download(llabel.text)
-                    
-<AddFileCommand>
+
+<AddAudioCommand>
     size_hint_y: None
     pos_hint: {"right": .98}
     padding: 12, 10
@@ -2273,20 +2344,19 @@ chat = """
     MDBoxLayout:
         orientation: 'vertical'
         adaptive_height: True
-        size_hint: None, None
+        # size_hint: None, None
         MDBoxLayout:
             MDLabel:
-                id: llabel
-                text: root.file_source
+                text: "Play Audio"
                 font_size: 12
                 color: (0, 0, 1, 1)
-                halign: 'right'
-                size_hint_x: .22
+                font_name: "BPoppins"
             MDIconButton:
-                icon: "download"
+                id: play_pause
+                icon: "play-circle-outline"  # pause-circle-outline
                 on_release:
-                    app.download(llabel.text)
-    
+                    root.play(root.file_source)
+
 MDScreen:
     name: "chat"
     kkk: kkk
@@ -2306,6 +2376,8 @@ MDScreen:
                 theme_text_color: "Custom"
                 text_color: rgba(26, 24, 58, 255)
                 on_release:
+                    # app.stop_group_thread()
+                    app.sock.close()
                     root.manager.transition.direction = "right"
                     root.manager.current = "home"
             MDIconButton:
@@ -2482,7 +2554,7 @@ MDScreen:
         text: "ENCOCHAT"
         font_name: "BPoppins"
         font_size: "26sp"
-        pos_hint: {"center_x": .8, "center_y": .9}
+        pos_hint: {"center_x": .95, "center_y": .9}
         color: rgba(0, 0, 59, 255)
 
     MDIconButton:
@@ -2529,7 +2601,7 @@ MDScreen:
             TextInput:
                 input_filter: "int"
                 id: group_num
-                hint_text: "Enter group number"
+                hint_text: "Enter chat number"
                 size_hint: 1, None
                 pos_hint: {"center_x": .5, "center_y": .5}
                 font_size: "12sp"
@@ -2557,6 +2629,7 @@ progress_bar = """
 MDScreen:
     name: "progress_bar"
     progress: progress
+    warning: warning
     
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
@@ -2592,6 +2665,15 @@ MDScreen:
             value: 0
             size_hint: .8, None
             pos_hint: {"center_x": .5, "center_y": .3}
+        
+        MDLabel:
+            id: warning
+            text: "This is taking longer than expected."
+            font_name: "MPoppins"
+            font_size: "13sp"
+            opacity: 0
+            pos_hint: {"center_x": .6, "center_y": .23}
+            color: rgba(135, 133, 193, 255)
 """
 
 call = """
@@ -2951,14 +3033,16 @@ MDScreen:
 
 # TODO: Encrypted Calling
 
-from kivy.utils import platform
+# socket.setdefaulttimeout(5)
+
 # from PIL import Image
 if platform == "android":
     from android.permissions import request_permissions, Permission
     from android.storage import primary_external_storage_path
-    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO, Permission.CAMERA, Permission.INTERNET])
+    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
+                         Permission.CAMERA, Permission.INTERNET])
 
-# Window.size = (310, 580)
+Window.size = (310, 580)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -2989,7 +3073,17 @@ try:
 except:
     HOST, PORT = None, None
 
-# HOST, PORT = "localhost", 5000
+HOST, PORT = "localhost", 5000
+
+
+def connect_again():
+    global HOST, PORT
+    try:
+        HOST, PORT = requests.get("https://api.protdos.com").text.split(":")
+        PORT = int(PORT)
+        return True
+    except:
+        return False
 
 
 ######################### Chat #########################
@@ -3079,6 +3173,22 @@ class AddFileCommand(BoxLayout):
     file_source = StringProperty()
     font_name = "BPoppins"
     font_size = 12
+
+
+class AddAudio(BoxLayout):
+    file_source = StringProperty()
+    font_name = "BPoppins"
+    font_size = 12
+
+
+class AddAudioCommand(BoxLayout):
+    file_source = StringProperty()
+    font_name = "BPoppins"
+    font_size = 12
+
+    def play(self, path):
+        print("playing", path)
+        SoundLoader.load(path).play()
 
 
 ######################### Encryption #########################
@@ -3291,8 +3401,6 @@ class ChatApp(MDApp):
 
     screen_manager = None
 
-    sock = None
-
     sound = None
     BLOCK_SIZE = None
 
@@ -3301,6 +3409,8 @@ class ChatApp(MDApp):
     client_socket = None
 
     stop_genning = False
+
+    group_chat_started = False
 
     def build(self):
         try:
@@ -3376,10 +3486,12 @@ class ChatApp(MDApp):
         except Exception as e:
             print("Error21:", e)
 
-    def connect(self):
+    def connect(self, timeout=None):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.settimeout(timeout)
             self.sock.connect((HOST, PORT))
+            self.sock.settimeout(None)
         except Exception as e:
             print("Error22:", e)
             self.screen_manager.current_screen = "main"
@@ -3435,11 +3547,11 @@ class ChatApp(MDApp):
             if password2 != password:
                 self.show_toaster("Passwords do not match.")
                 return
-            if hashCrackWordlist(password) is not None:
+            if hashCrackWordlist(password) is not None or strength_test(password)[0] is False:
                 self.show_toaster("Password isn't strong enough.")
                 return
             ### Check if user exists
-            self.connect()
+            self.connect(timeout=5)
             self.sock.send(f"USER_EXISTS:{username}".encode())
             if self.sock.recv(1024) == b"exists":
                 self.screen_manager.get_screen("signup").username.text = ""
@@ -3455,12 +3567,7 @@ class ChatApp(MDApp):
             self.screen_manager.get_screen("signup").username.text = ""
             self.screen_manager.get_screen("signup").password.text = ""
             self.screen_manager.get_screen("signup").password2.text = ""
-            if not strength_test(password)[0]:
-                self.show_toaster("Password isn't strong enough.")
-                self.screen_manager.get_screen("signup").password.text = ""
-                self.screen_manager.get_screen("signup").password2.text = ""
-                self.screen_manager.current = "signup"
-                return
+
             uid = str(uuid.uuid4())
             self.id = uid
             self.started_g = False
@@ -3506,9 +3613,12 @@ class ChatApp(MDApp):
             self.show_toaster("Account created!")
             """
         except Exception as e:
-            print(e)
-            self.screen_manager.current_screen = "home"
-            self.show_toaster("Error creating your account! Please try again.")
+            print("hello", e)
+            # self.screen_manager.current = "main"
+            self.show_toaster("Please try again.")
+            if not connect_again():
+                self.screen_manager.current = "main"
+                self.show_toaster("Check your internet connection.")
 
     def ttest(self):
         while not self.started_g:
@@ -3520,35 +3630,39 @@ class ChatApp(MDApp):
         print("done")
 
     def mama(self):
-        self.sock.send(f"SIGNUP:::{self.username}:::{hash_pwd(self.password)}:::{self.id}".encode())
-        print("nah bruh")
-        time.sleep(.5)
-        self.sock.send(self.public_key.save_pkcs1())
-        r = self.sock.recv(1024).decode()
-        if r == "error":
-            self.show_toaster("Username taken. Try again.")
-            return
-        elif r == "errorv2":
-            self.show_toaster("ID already used - internal error. Try again later.")
-            return
-        elif r == "errorv3":
-            self.show_toaster("Invalid username.")
-            return
+        if self.public_key is not None and self.private_key is not None:
+            self.sock.send(f"SIGNUP:::{self.username}:::{hash_pwd(self.password)}:::{self.id}".encode())
+            print("nah bruh")
+            time.sleep(.5)
+            self.sock.send(self.public_key.save_pkcs1())
+            r = self.sock.recv(1024).decode()
+            if r == "error":
+                self.show_toaster("Username taken. Try again.")
+                return
+            elif r == "errorv2":
+                self.show_toaster("ID already used - internal error. Try again later.")
+                return
+            elif r == "errorv3":
+                self.show_toaster("Invalid username.")
+                return
+            else:
+                pass
+            """
+            with open("private_key.txt", "w") as file:
+                file.write(self.private_key.save_pkcs1().decode())
+            """
+            with open("private_key.txt", "w") as file:
+                file.write(Encrypt(message_=self.private_key.save_pkcs1().decode(), key=self.password).encrypt().decode())
+            with open("public_key.txt", "w") as file:
+                file.write(self.public_key.save_pkcs1().decode())
+
+            self.super_dubba_key = self.password
+            self.screen_manager.get_screen("progress_bar").warning.opacity = 0
+            self.screen_manager.current = "home"
+
+            self.show_toaster("Account created!")
         else:
-            pass
-        """
-        with open("private_key.txt", "w") as file:
-            file.write(self.private_key.save_pkcs1().decode())
-        """
-        with open("private_key.txt", "w") as file:
-            file.write(Encrypt(message_=self.private_key.save_pkcs1().decode(), key=self.password).encrypt().decode())
-        with open("public_key.txt", "w") as file:
-            file.write(self.public_key.save_pkcs1().decode())
-
-        self.super_dubba_key = self.password
-        self.screen_manager.current = "home"
-
-        self.show_toaster("Account created!")
+            self.show_toaster("Error creating account.")
 
     @mainthread
     def okok(self, username, password, uid):
@@ -3594,7 +3708,7 @@ class ChatApp(MDApp):
 
     def login(self, username, password):
         try:
-            self.connect()
+            self.connect(timeout=5)
             global user
             self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {username}"
             try:
@@ -3884,12 +3998,14 @@ class ChatApp(MDApp):
                 else:
                     size = .7
                     halign = "left"
-            self.screen_manager.get_screen("chat_sec").chat_list.add_widget(Response2(text=message, size_hint_x=size+.3, halign=halign))
+            self.screen_manager.get_screen("chat_sec").chat_list.add_widget(
+                Response2(text=message, size_hint_x=size + .3, halign=halign))
         except Exception as e:
             print("Error6:", e)
             pass
 
     def receive_messages_private(self, _):
+        self.sock.settimeout(None)
         print("Personal private key:", self.private_key)
         try:
             with open(f"{current_chat_with}.txt", "r") as ii:
@@ -3942,7 +4058,7 @@ class ChatApp(MDApp):
                     break
             except Exception as e:
                 print("Errorv3:", e)
-                continue
+                break
 
     def load_groups(self):
         try:
@@ -4028,30 +4144,45 @@ class ChatApp(MDApp):
             self.show_toaster("Please load the groups first.")
 
     def join_new_group(self, key):
-        if key != "":
-            if self.super_dubba_key != "":
-                self.screen_manager.get_screen("chat").chat_list.clear_widgets()
-                global group_key, sock, is_it_my_turn
-                is_it_my_turn = True
+        try:
+            if key != "":
+                if self.super_dubba_key != "":
+                    self.screen_manager.get_screen("chat").chat_list.clear_widgets()
+                    global group_key, sock, is_it_my_turn
+                    is_it_my_turn = True
 
-                name = key.split("|")[0]
-                group_id = key.split("|")[2]
-                self.screen_manager.get_screen("chat").kkk.text = key
-                self.screen_manager.get_screen("chat").bot_name.text = name
-                group_key = key
-                with open("groups.csv", "r") as file:
-                    aa = file.read().split("\n")
-                enc_key = Encrypt(message_=key, key=self.super_dubba_key).encrypt().decode()
-                if enc_key not in aa:
-                    with open("groups.csv", "a") as file:
-                        file.write(f"{enc_key}\n")
+                    name = key.split("|")[0]
+                    group_id = key.split("|")[2]
+                    self.screen_manager.get_screen("chat").kkk.text = key
+                    self.screen_manager.get_screen("chat").bot_name.text = name
+                    group_key = key
+                    with open("groups.csv", "r") as file:
+                        aa = file.read().split("\n")
+                    enc_key = Encrypt(message_=key, key=self.super_dubba_key).encrypt().decode()
+                    if enc_key not in aa:
+                        with open("groups.csv", "a") as file:
+                            file.write(f"{enc_key}\n")
 
-                self.connect()
-                self.sock.send(("ID::::::" + "|||" + self.username + "|||" + group_id).encode())
-                threading.Thread(target=self.receive_messages).start()
-                self.screen_manager.current = "chat"
-            else:
-                self.screen_manager.current = "login"
+                    self.connect()
+                    self.sock.send(f"VALID_GROUP_NAME:{name}".encode())
+                    res = self.sock.recv(1024)
+                    print(res)
+                    if res == b"yes":
+                        self.screen_manager.get_screen("new_group_join").name_.text = ""
+                        self.sock.close()
+                        self.connect()
+                        self.sock.send(("ID::::::" + "|||" + self.username + "|||" + group_id).encode())
+                        if not self.group_chat_started:
+                            threading.Thread(target=self.receive_messages).start()
+                        self.screen_manager.current = "chat"
+                    else:
+                        pass
+                else:
+                    self.screen_manager.current = "login"
+        except IndexError:
+            self.show_toaster("Invalid key.")
+        except Exception:
+            self.show_toaster("Error")
 
     def create_group(self, name):
         try:
@@ -4061,8 +4192,7 @@ class ChatApp(MDApp):
                 global group_key, sock, is_it_my_turn
                 is_it_my_turn = True
                 key = gen(100)
-                group_id = str(uuid.uuid4())
-                key = name + "|" + key + "|" + group_id
+                key = name + "|" + key + "|" + name
                 group_key = key
                 # print(key)
                 self.screen_manager.get_screen("chat").kkk.text = key
@@ -4074,17 +4204,28 @@ class ChatApp(MDApp):
                     file.write(f"{encc}\n")
 
                 self.connect()
+                self.sock.send(f"CREATE_GROUP:{name}:{self.username}:{hash_pwd(self.password)}".encode())
+                res = self.sock.recv(1024).decode()
+                print(res)
 
-                self.sock.send(("ID::::::" + "|||" + self.username + "|||" + group_id).encode())
-                # sock.send(f"ID::::::{group_id}".encode())
+                if res == "success":
+                    self.sock.close()
+                    self.connect()
 
-                self.screen_manager.get_screen("chat").chat_list.clear_widgets()
-                self.screen_manager.get_screen("chat").bot_name.text = name
-                # self.screen_manager.get_screen("chat_sec").kkk.text = key
+                    self.sock.send(("ID::::::" + "|||" + self.username + "|||" + name).encode())
+                    # sock.send(f"ID::::::{group_id}".encode())
 
-                threading.Thread(target=self.receive_messages).start()
+                    self.screen_manager.get_screen("chat").chat_list.clear_widgets()
+                    self.screen_manager.get_screen("chat").bot_name.text = name
+                    # self.screen_manager.get_screen("chat_sec").kkk.text = key
 
-                self.screen_manager.current = "chat"
+                    if not self.group_chat_started:
+                        a = threading.Thread(target=self.receive_messages)
+                        a.start()
+
+                    self.screen_manager.current = "chat"
+                else:
+                    self.show_toaster("Name already taken.")
         except Exception as e:
             print("Error11:", e)
             self.show_toaster("Couldn't create group.")
@@ -4100,7 +4241,7 @@ class ChatApp(MDApp):
             if item != "":
                 try:
                     item = Decrypt(message_=item, key=self.super_dubba_key).decrypt()
-                    if item not in self.l:
+                    if item not in self.l and item is not None:
                         self.l.append(item)
                 except:
                     print(f"item {item} doesn't belong to the acc.")
@@ -4108,10 +4249,10 @@ class ChatApp(MDApp):
 
         for i, item in enumerate(self.l):
             self.screen_manager.get_screen("all_load").group_list.add_widget(
-                LoadRes(text=f"{i+1})-{item}", size_hint_x=.75))
+                LoadRes(text=f"{i + 1})-{item}", size_hint_x=.75))
 
     def chat_start_with(self, nnum):
-        rec = self.l[int(nnum)-1]
+        rec = self.l[int(nnum) - 1]
         self.create_chat(rec)
 
     def show_password(self):
@@ -4168,7 +4309,7 @@ class ChatApp(MDApp):
                     halign = "left"
 
                 self.screen_manager.get_screen("chat").chat_list.add_widget(
-                    Command(text=message, size_hint_x=size+.3, halign=halign))
+                    Command(text=message, size_hint_x=size + .3, halign=halign))
 
                 self.screen_manager.get_screen("chat").text_input.text = ""
         except Exception as e:
@@ -4176,8 +4317,9 @@ class ChatApp(MDApp):
             self.show_toaster("Couldn't send message.")
 
     def receive_messages(self):
-        while True:
-            try:
+        try:
+            self.sock.settimeout(None)
+            while True:
                 message = self.sock.recv(1024).decode()
                 print(message)
                 try:
@@ -4259,19 +4401,16 @@ class ChatApp(MDApp):
                             self.add_img(img_src=kk)
 
                         else:
-                            self.add2(message, fro=sender)
+                            self.add2(message, sender)
                             print("Message:", message)
                     else:
                         self.screen_manager.current_screen = "home"
                         self.show_toaster("Server restarting...")
                         break
-            except Exception as e:
-                print("Error13:", e)
-                if "[WinError 10054]" in e:
-                    self.screen_manager.current = "main"
-                    self.show_toaster("Server went offline.")
-                    break
-                continue
+        except ConnectionAbortedError:
+            pass
+        except Exception as e:
+            print("Errorv4545", e)
 
     @mainthread
     def add_file(self, path, _):
@@ -4282,6 +4421,18 @@ class ChatApp(MDApp):
     def add_file_cmd(self, path):
         self.screen_manager.get_screen("chat").chat_list.add_widget(
             AddFileCommand(file_source=path))
+
+    @mainthread
+    def add_audio(self, path):
+        self.screen_manager.get_screen("chat").chat_list.add_widget(
+            AddAudio(file_source=path)
+        )
+
+    @mainthread
+    def add_audio_cmd(self, path):
+        self.screen_manager.get_screen("chat").chat_list.add_widget(
+            AddAudioCommand(file_source=path)
+        )
 
     @mainthread
     def add2(self, message, _):
@@ -4311,7 +4462,7 @@ class ChatApp(MDApp):
                     size = .7
                     halign = "left"
             self.screen_manager.get_screen("chat").chat_list.add_widget(
-                Response(text=message, size_hint_x=size+.3, halign=halign))
+                Response(text=message, size_hint_x=size + .3, halign=halign))
         except Exception as e:
             print("Error14:", e)
             pass
@@ -4375,7 +4526,7 @@ class ChatApp(MDApp):
                 halign = "left"
 
         self.screen_manager.get_screen("chat_sec").chat_list.add_widget(
-            Command2(text=message, size_hint_x=size+.3, halign=halign))
+            Command2(text=message, size_hint_x=size + .3, halign=halign))
 
         self.screen_manager.get_screen("chat_sec").text_input.text = ""
 
@@ -4403,14 +4554,16 @@ class ChatApp(MDApp):
             else:
                 filename = str(os.path.basename(file_path))
 
-                allowed = ["pdf", "txt", "jpg", "jpeg", "png", "docx", "bat", "exe", "apk"]
+                allowed = ["pdf", "txt", "jpg", "jpeg", "png", "docx", "bat", "exe", "apk", "mpg", "mp3", "wav", "aiff",
+                           "ogg", "wma"]
                 img = ["jpg", "jpeg", "png"]
+                audio = ["mpg", "mp3", "wav", "aiff", "ogg", "wma"]
 
                 if filename.split(".")[-1] not in allowed:
                     self.show_toaster("File-ending not allowed.")
                     return
 
-                if filename.split(".")[-1] not in img:
+                if filename.split(".")[-1] not in img:  # and filename.split(".")[-1] not in audio
 
                     self.sock.send("FILE:::::".encode())
 
@@ -4440,7 +4593,7 @@ class ChatApp(MDApp):
                     # self.screen_manager.get_screen("chat").chat_list.add_widget(
                     #    Command(text=filename, size_hint_x=.75, halign="center"))
                     self.add_file_cmd(filename)
-                else:
+                elif filename.split(".")[-1] in img:
                     self.sock.send("IMAGE:::::".encode())
 
                     time.sleep(1)
@@ -4469,6 +4622,9 @@ class ChatApp(MDApp):
                     self.add_img_cmd(file_path)
                     # self.screen_manager.get_screen("chat").chat_list.add_widget(
                     #    Command(text=filename, size_hint_x=.75, halign="center"))
+                # else:
+                    # send as audio
+                    # self.add_audio_cmd(file_path)
 
         except Exception as e:
             print("Error16:", e)
@@ -4581,6 +4737,8 @@ class ChatApp(MDApp):
                 self.i += 1
                 self.screen_manager.get_screen("progress_bar").progress.value = self.i
                 self.started_g = True
+                if self.screen_manager.get_screen("progress_bar").progress.value >= 100:
+                    self.screen_manager.get_screen("progress_bar").warning.opacity = 100
             except:
                 Clock.unschedule(self.loader)
 
@@ -4588,6 +4746,7 @@ class ChatApp(MDApp):
         self.i = 0
         self.screen_manager.current = "progress_bar"
         Clock.schedule_interval(self.loader, 0.1)  # 3
+        print("hejo")
 
     def gen(self, username, password, uid):
         print("n")
@@ -4602,7 +4761,7 @@ class ChatApp(MDApp):
             self.key_genned = True
             self.public_key = public
             self.private_key = private
-        # self.screen_manager.current = "home"
+            # self.screen_manager.current = "home"
             self.okok(username, password, uid)
 
     def connect_voice(self, recipient):
@@ -4875,4 +5034,3 @@ if __name__ == "__main__":
     LabelBase.register(name="BPoppins",
                        fn_regular="Poppins-SemiBold.ttf")
     ChatApp().run()
-
