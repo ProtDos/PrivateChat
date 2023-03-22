@@ -284,11 +284,12 @@ def handle(client, g_id):
                 print(members)
 
                 for person in members:
-                    person.send(b"IMAGE_INCOMING")
-                    time.sleep(.5)
-                    print("sent first")
-                    person.send(filename + b"<<MARKER>>" + sender)
-                    time.sleep(.5)
+                    if person != client:
+                        person.send(b"IMAGE_INCOMING")
+                        time.sleep(.5)
+                        print("sent first")
+                        person.send(filename + b"<<MARKER>>" + sender)
+                        time.sleep(.5)
 
                 while True:
                     data = client.recv(1024)
