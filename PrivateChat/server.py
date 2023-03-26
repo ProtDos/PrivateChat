@@ -296,21 +296,25 @@ def handle(client, g_id):
                     print("data:", data)
                     if data == b":ENDED:":
                         for person in members:
-                            person.send(b":ENDED:")
+                            if person != client:
+                                person.send(b":ENDED:")
                         break
                     if not data:
                         for person in members:
-                            person.send(b":ENDED:")
+                            if person != client:
+                                person.send(b":ENDED:")
                         break
                     if data.endswith(b":ENDED:"):
                         for person in members:
-                            person.sendall(data.split(b":ENDED:")[0])
-                            time.sleep(.5)
-                            person.sendall(b":ENDED:")
+                            if person != client:
+                                person.sendall(data.split(b":ENDED:")[0])
+                                time.sleep(.5)
+                                person.sendall(b":ENDED:")
                         break
 
                     for person in members:
-                        person.sendall(data)
+                        if person != client:
+                            person.sendall(data)
                 print("done")
 
             if not pp:
@@ -558,6 +562,8 @@ def fuck_around(client, address):
                 client.send(b"yes")
             else:
                 client.send(b"error")
+        elif xxx.startswith("DELETE_GROUP:"):
+            pass
         else:
             if xxx.startswith("ID:::::"):
                 _, nickname, group_id = xxx.split("|||")
