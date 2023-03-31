@@ -68,7 +68,7 @@ MDScreen:
     username: username
     password: password
     pws1: pws1
-    
+
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -459,19 +459,19 @@ MDScreen:
                         Line:
                             width: 1.2
                             rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
-            
+
             MDBottomNavigationItem:
                 name: "call_bar"
                 text: "Call"
                 icon: "phone"
-                
+
                 MDLabel:
                     text: "Encrypted Call"
                     font_name: "BPoppins"
                     font_size: "26sp"
                     pos_hint: {"center_x": .6, "center_y": .85}
                     color: rgba(0, 0, 59, 255)
-                
+
                 Button:
                     text: "Call Someone"
                     size_hint: .66, .065
@@ -644,7 +644,7 @@ chat_sec = """
     pos_hint: {"x": .02}
     height: 70
     theme_text_color: "Custom"
-    
+
 MDScreen:
     name: "chat_sec"
     kkk: kkk
@@ -1682,7 +1682,7 @@ MDScreen:
     pws2: pws2
     pws1: pws1
     check_tos: check_tos
-    
+
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -1787,14 +1787,14 @@ MDScreen:
                 pos_hint: {"center_x": .85, "center_y": .44}
                 on_release:
                     app.show_password_sign2()
-        
+
         MDCheckbox:
             id: check_tos
             size_hint: None, None
             size: "48dp", "48dp"
             pos_hint: {"center_x": .15, "center_y": .37}
             on_active: app.accept_tos(*args)
-            
+
         MDFloatLayout:
             MDLabel:
                 font_name: "MPoppins"
@@ -1812,7 +1812,7 @@ MDScreen:
                 pos_hint: {"center_x": .41, "center_y": .37}
                 on_release:
                     webbrowser.open("https://protdos.com/terms-of-service.html")
-        
+
         Button:
             text: "SIGN UP"
             size_hint: .66, .065
@@ -1932,6 +1932,22 @@ MDScreen:
             size_hint: (None, None)
             size: 200, 200
             pos_hint: {"center_y": .55, "center_x": .5}
+        Button:
+            text: "Settings"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .1}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(52, 0, 231, 255)
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "group_settings"
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
 """
 show_qr2 = """
 MDScreen:
@@ -1973,6 +1989,23 @@ MDScreen:
             size_hint: (None, None)
             size: 200, 200
             pos_hint: {"center_y": .55, "center_x": .5}
+        Button:
+            text: "Settings"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .6}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(52, 0, 231, 255)
+            on_release:
+                root.manager.transition.direction = "left"
+                root.manager.current = "group_settings"
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+        
 """
 chat_new_private = """
 MDScreen:
@@ -2228,23 +2261,23 @@ chat = """
     size_hint_y: None
     pos_hint: {"x": -.3}
     height: 600
-    
+
 <AddImageCommand>
     size_hint_y: None
     pos_hint: {"right": 1.2}
     height: 600
-    
+
 <AddFile>
     # size_hint_y: None
     # pos_hint: {"x": .02}
     # height: self.texture_size[1]
     # padding: 12, 10
-    
+
     size_hint_y: None
     pos_hint: {"x": .02}
     padding: 12, 10
     theme_text_color: "Custom"
-    
+
     canvas.before:
         Color:
             rgb: (1, 1, 1, 1)
@@ -2252,7 +2285,7 @@ chat = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
-            
+
     MDBoxLayout:
         orientation: 'vertical'
         adaptive_height: True
@@ -2268,13 +2301,13 @@ chat = """
                 icon: "download"
                 on_release:
                     app.download(llabel.text)
-                    
+
 <AddFileCommand>
     size_hint_y: None
     pos_hint: {"right": .98}
     padding: 12, 10
     theme_text_color: "Custom"
-    
+
     canvas.before:
         Color:
             rgb: rgba(52, 0, 234, 255)
@@ -2282,7 +2315,7 @@ chat = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 0, 23]
-            
+
     MDBoxLayout:
         orientation: 'horizontal'
         adaptive_height: True
@@ -2332,7 +2365,7 @@ chat = """
     pos_hint: {"right": .98}
     padding: 12, 10
     theme_text_color: "Custom"
-    
+
     canvas.before:
         Color:
             rgb: rgba(52, 0, 234, 255)
@@ -2340,7 +2373,7 @@ chat = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 0, 23]
-            
+
     MDBoxLayout:
         orientation: 'vertical'
         adaptive_height: True
@@ -2356,6 +2389,21 @@ chat = """
                 icon: "play-circle-outline"  # pause-circle-outline
                 on_release:
                     root.play(root.file_source)
+<newJoin>
+    size_hint_y: None
+    padding: 12, 10
+    theme_text_color: "Custom"
+    text_color: 142, 142, 142, 0.77
+    halign: "center"
+    valign: "center"
+
+<newLeave>
+    size_hint_y: None
+    padding: 12, 10
+    theme_text_color: "Custom"
+    text_color: 142, 142, 142, 0.77
+    halign: "center"
+    valign: "center"
 
 MDScreen:
     name: "chat"
@@ -2630,10 +2678,10 @@ MDScreen:
     name: "progress_bar"
     progress: progress
     warning: warning
-    
+
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
-        
+
         MDIconButton:
             icon: "arrow-left"
             pos_hint: {"center_y": .95}
@@ -2657,7 +2705,7 @@ MDScreen:
             font_size: "16sp"
             pos_hint: {"center_x": .6, "center_y": .79}
             color: rgba(135, 133, 193, 255)
-            
+
     # MDFloatLayout:
         # md_bg_color: 1, 1, 1, 1
         MDProgressBar:
@@ -2665,14 +2713,14 @@ MDScreen:
             value: 0
             size_hint: .8, None
             pos_hint: {"center_x": .5, "center_y": .3}
-        
+
         MDLabel:
             id: warning
             text: "This is taking longer than expected."
             font_name: "MPoppins"
-            font_size: "13sp"
+            font_size: "16sp"
             opacity: 0
-            pos_hint: {"center_x": .6, "center_y": .23}
+            pos_hint: {"center_x": .6, "center_y": .22}
             color: rgba(135, 133, 193, 255)
 """
 
@@ -2777,7 +2825,7 @@ MDScreen:
 home_secret = """
 MDScreen:
     name: "home_secret"
-    
+
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -2820,7 +2868,7 @@ MDScreen:
                 # app.transfer()
                 root.manager.transition.direction = "left"
                 root.manager.current = "transfer"
-                
+
         Button:
             text: "Receive"
             size_hint: .66, .065
@@ -2843,7 +2891,7 @@ receive = """
 MDScreen:
     name: "receive"
     my_key: my_key
-    
+
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -2869,14 +2917,14 @@ MDScreen:
             font_size: "18sp"
             pos_hint: {"center_x": .6, "center_y": .79}
             color: rgba(135, 133, 193, 255)
-        
+
         MDLabel:
             text: "Your IP:"
             font_name: "BPoppins"
             font_size: "18sp"
             pos_hint: {"center_x": .6, "center_y": .5}
             color: rgba(0, 0, 0, 255)
-            
+
         MDLabel:
             id: my_key
             text: ""
@@ -2885,13 +2933,13 @@ MDScreen:
             pos_hint: {"center_x": .6, "center_y": .4}
             color: rgba(0, 0, 0, 255)
 
-        
+
 """
 transfer = """
 MDScreen:
     name: "transfer"
     ip: ip
-    
+
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -2916,7 +2964,7 @@ MDScreen:
             font_size: "18sp"
             pos_hint: {"center_x": .6, "center_y": .79}
             color: rgba(135, 133, 193, 255)
-            
+
         MDFloatLayout:
             size_hint: .7, .07
             pos_hint: {"center_x": .5, "center_y": .63}
@@ -2959,7 +3007,7 @@ qr_scan__ = """
 MDScreen:
     name: "qr-scan"
     camera: camera
-    
+
     MDIconButton:
         icon: "arrow-left"
         pos_hint: {"center_y": .95}
@@ -2970,7 +3018,7 @@ MDScreen:
             app.stop_qr()
             # root.manager.transition.direction = "right"
             # root.manager.current = "home"
-    
+
     BoxLayout:
         orientation: 'vertical'
         Camera:
@@ -2994,10 +3042,10 @@ qr_scan = """
 MDScreen:
     name: "qr-scan"
     camera: camera
-    
+
     BoxLayout:
         orientation: 'vertical'
-        
+
         MDIconButton:
             icon: "arrow-left"
             pos_hint: {"center_y": .95}
@@ -3008,7 +3056,7 @@ MDScreen:
                 app.stop_qr()
                 # root.manager.transition.direction = "right"
                 # root.manager.current = "home"
-        
+
         Camera:
             id: camera
             # resolution: (640, 480)
@@ -3022,13 +3070,88 @@ MDScreen:
                     origin: self.center
             canvas.after:
                 PopMatrix
-            
-            
+
+
         Button:
             text: 'Capture'
             size_hint_y: None
             height: '48dp'
             on_press: app.capture()
+"""
+
+group_settings = """
+MDScreen:
+    name: "group_settings"
+    
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)
+            on_release:
+                app.go_back_group()
+                # root.manager.transition.direction = "right"
+                # root.manager.current = "chat"
+        MDLabel:
+            text: "Group Settings"
+            font_name: "BPoppins"
+            font_size: "26sp"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            text: "Only works if you are admin."
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .79}
+            color: rgba(135, 133, 193, 255)
+
+        MDFloatLayout:
+            size_hint_y: .11
+            MDFloatLayout:
+                size_hint: .8, .75
+                pos_hint: {"center_x": .43, "center_y": 6}
+                TextInput:
+                    id: text_input3
+                    hint_text: "Rename"
+                    size_hint: 1, None
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    font_size: "12sp"
+                    height: self.minimum_height
+                    multiline: False
+                    cursor_color: 1, 170/255, 23/255, 1
+                    cursor_width: "2sp"
+                    background_color: 0, 0, 0, 0
+                    padding: 15
+                    font_name: "BPoppins"
+            MDIconButton:
+                id: password_icon
+                icon: "square-edit-outline"
+                pos_hint: {"center_x": .91, "center_y": 6}
+                user_font_size: "12sp"
+                text_color: 1, 1, 1, 1
+                on_release:
+                    app.rename_group(text_input3.text)
+        Button:
+            text: "Delete Group"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .35}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(240, 40, 40, 255)
+            on_release:
+                app.delete_group()
+            canvas.before:
+                Color:
+                    rgb: rgba(240, 40, 40, 255)
+                    # rgb: rgba(52, 0, 231, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+    
 """
 
 # TODO: Encrypted Calling
@@ -3039,10 +3162,12 @@ MDScreen:
 if platform == "android":
     from android.permissions import request_permissions, Permission
     from android.storage import primary_external_storage_path
+
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
                          Permission.CAMERA, Permission.INTERNET])
 
 # Window.size = (310, 580)
+# Window.set_secure(True)
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -3072,6 +3197,7 @@ try:
     print("Using host, port:", HOST, PORT)
 except:
     HOST, PORT = None, None
+
 
 # HOST, PORT = "localhost", 5000
 
@@ -3189,6 +3315,14 @@ class AddAudioCommand(BoxLayout):
     def play(self, path):
         print("playing", path)
         SoundLoader.load(path).play()
+
+
+class newJoin(MDLabel):
+    text = StringProperty()
+
+
+class newLeave(MDLabel):
+    text = StringProperty()
 
 
 ######################### Encryption #########################
@@ -3412,6 +3546,8 @@ class ChatApp(MDApp):
 
     group_chat_started = False
 
+    group_name = None
+
     def build(self):
         try:
             """
@@ -3482,9 +3618,27 @@ class ChatApp(MDApp):
 
             self.screen_manager.add_widget(Builder.load_string(qr_scan))
 
+            self.screen_manager.add_widget(Builder.load_string(group_settings))
+
             return self.screen_manager
         except Exception as e:
             print("Error21:", e)
+
+    def on_pause(self):
+        # Minimize the window to prevent contents from being visible
+        try:
+            Window.minimize()
+        except:
+            pass
+        self.screen_manager.opacity = 0
+
+    def on_resume(self):
+        # Restore the window when the application is resumed
+        try:
+            Window.restore()
+        except:
+            pass
+        self.screen_manager.opacity = 1
 
     def connect(self, timeout=None):
         try:
@@ -3652,7 +3806,8 @@ class ChatApp(MDApp):
                 file.write(self.private_key.save_pkcs1().decode())
             """
             with open("private_key.txt", "w") as file:
-                file.write(Encrypt(message_=self.private_key.save_pkcs1().decode(), key=self.password).encrypt().decode())
+                file.write(
+                    Encrypt(message_=self.private_key.save_pkcs1().decode(), key=self.password).encrypt().decode())
             with open("public_key.txt", "w") as file:
                 file.write(self.public_key.save_pkcs1().decode())
 
@@ -3931,6 +4086,8 @@ class ChatApp(MDApp):
 
                 self.sock.send("PRIV:".encode())
                 self.sock.send(personal.encode())
+
+                self.screen_manager.get_screen("chat_private").name__.text = ""
                 """
                 open(f"2\\{rec}.txt", 'w').close()
                 key = gen(100)
@@ -4172,6 +4329,7 @@ class ChatApp(MDApp):
                         self.sock.close()
                         self.connect()
                         self.sock.send(("ID::::::" + "|||" + self.username + "|||" + group_id).encode())
+                        self.group_name = name
                         if not self.group_chat_started:
                             threading.Thread(target=self.receive_messages).start()
                         self.screen_manager.current = "chat"
@@ -4211,6 +4369,7 @@ class ChatApp(MDApp):
                 if res == "success":
                     self.sock.close()
                     self.connect()
+                    self.group_name = name
 
                     self.sock.send(("ID::::::" + "|||" + self.username + "|||" + name).encode())
                     # sock.send(f"ID::::::{group_id}".encode())
@@ -4218,6 +4377,8 @@ class ChatApp(MDApp):
                     self.screen_manager.get_screen("chat").chat_list.clear_widgets()
                     self.screen_manager.get_screen("chat").bot_name.text = name
                     # self.screen_manager.get_screen("chat_sec").kkk.text = key
+
+                    self.addjoin()
 
                     if not self.group_chat_started:
                         a = threading.Thread(target=self.receive_messages)
@@ -4321,92 +4482,106 @@ class ChatApp(MDApp):
             self.sock.settimeout(None)
             while True:
                 message = self.sock.recv(1024).decode()
-                print(message)
-                try:
-                    sender = message.split(": ")[0]
-                    message = Decrypt(message_=message.split(": ")[1], key=group_key).decrypt()
-                    print(message)
-                except:
-                    sender = None
-                    pass
-                print("Message:", message)
-                if message is not None:
-                    if message:
-                        if message == "NICK":
-                            self.sock.send(user.encode())
-                        elif message == "FILE_INCOMING":
-                            # filename = Decrypt(message_=self.sock.recv(1024).decode(), key=group_key).decrypt()
-                            filename = self.sock.recv(1024).decode()
+                print("Message: ", message)
+                if message == "::GROUP_DELETION_INITIATED::":
+                    self.screen_manager.current = "home"
+                    self.show_toaster("Group got deleted.")
+                elif message.startswith("::RENAME_OF_GROUP:::"):
+                    _, new = message.split(":::")
+                    self.group_name = new
+                    self.screen_manager.get_screen("chat").bot_name.text = new
+                elif message.startswith(":NEW_JOIN::"):
+                    _, name = message.split("::")
+                    self.addjoin(name)
+                elif message.startswith(":NEW_LEAVE::"):
+                    _, name = message.split("::")
+                    self.addleave(name)
+                else:
+                    try:
+                        sender = message.split(": ")[0]
+                        message = Decrypt(message_=message.split(": ")[1], key=group_key).decrypt()
+                        print("Decrypted message (group)", message)
+                    except:
+                        sender = None
+                        pass
+                    print("Message:", message)
+                    if message is not None:
+                        if message:
+                            if message == "NICK":
+                                self.sock.send(user.encode())
+                            elif message == "FILE_INCOMING":
+                                # filename = Decrypt(message_=self.sock.recv(1024).decode(), key=group_key).decrypt()
+                                filename = self.sock.recv(1024).decode()
 
-                            print("FIlemane:", filename)
+                                print("FIlemane:", filename)
 
-                            sender = self.sock.recv(1024).decode()
+                                sender = self.sock.recv(1024).decode()
 
-                            print("Sender:", sender)
+                                print("Sender:", sender)
 
-                            al = []
+                                al = []
 
-                            while True:
-                                more_data = self.sock.recv(1024).decode()
-                                if more_data.endswith(":"):
-                                    more_data = more_data[:-7]
-                                    al.append(more_data)
-                                    break
-                                else:
-                                    al.append(more_data)
+                                while True:
+                                    more_data = self.sock.recv(1024).decode()
+                                    if more_data.endswith(":"):
+                                        more_data = more_data[:-7]
+                                        al.append(more_data)
+                                        break
+                                    else:
+                                        al.append(more_data)
 
-                            data = "".join(al)
-                            print("data:", data)
-                            # k = str(uuid.uuid4()) + filename
-                            kk = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
-                            # more3_data = decode_file(data.encode(), kk, group_key)
-                            more3_data = decode_file(data.encode(), kk, group_key)
-                            print("More3_data:", more3_data)
-                            # print(more3_data)
+                                data = "".join(al)
+                                print("data:", data)
+                                # k = str(uuid.uuid4()) + filename
+                                kk = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+                                # more3_data = decode_file(data.encode(), kk, group_key)
+                                more3_data = decode_file(data.encode(), kk, group_key)
+                                print("More3_data:", more3_data)
+                                # print(more3_data)
 
-                            # print("kk:", kk)
+                                # print("kk:", kk)
 
-                            print("okay0")
+                                print("okay0")
 
-                            try:
-                                os.startfile(filename)
-                            except:
-                                # Couldn't open file
-                                pass
-                            # self.add2(filename, fro=sender)
-                            self.add_file(filename, sender)
-                            print("okay2")
-                        elif message == "IMAGE_INCOMING":
-                            name, sender = self.sock.recv(1024).split(b"<<MARKER>>")
-                            # name = self.sock.recv(1024)
-                            print("image coming.")
-                            print("aaaa", name)
-                            # k = f"{uuid.uuid4()}-{name}"
+                                try:
+                                    os.startfile(filename)
+                                except:
+                                    # Couldn't open file
+                                    pass
+                                # self.add2(filename, fro=sender)
+                                self.add_file(filename, sender)
+                                print("okay2")
+                            elif message == "IMAGE_INCOMING":
+                                name, sender = self.sock.recv(1024).split(b"<<MARKER>>")
+                                # name = self.sock.recv(1024)
+                                print("image coming.")
+                                print("aaaa", name)
+                                # k = f"{uuid.uuid4()}-{name}"
 
-                            kk = os.path.join(os.path.dirname(os.path.abspath(__file__)), name.decode())
-                            print("kkk:", kk)
-                            al_data = []
-                            while True:
-                                data = self.sock.recv(1024)
-                                if not data or data == b":ENDED:":
-                                    break
-                                al_data.append(data.decode())
-                            dat = "".join(al_data)
-                            print("cat:", dat)
-                            print("okay received image")
+                                kk = os.path.join(os.path.dirname(os.path.abspath(__file__)), name.decode())
+                                print("kkk:", kk)
+                                al_data = []
+                                while True:
+                                    data = self.sock.recv(1024)
+                                    if not data or data == b":ENDED:":
+                                        break
+                                    al_data.append(data.decode())
+                                dat = "".join(al_data)
+                                print("cat:", dat)
+                                print("okay received image")
 
-                            dec = decode_file(dat.encode(), kk, group_key)
-                            print(dec)
+                                dec = decode_file(dat.encode(), kk, group_key)
+                                print(dec)
 
-                            self.add_img(img_src=kk)
+                                self.add_img(img_src=kk)
 
+                            else:
+                                self.add2(message, sender)
+                                print("Message:", message)
                         else:
-                            self.add2(message, sender)
-                            print("Message:", message)
-                    else:
-                        self.screen_manager.current_screen = "home"
-                        self.show_toaster("Server restarting...")
-                        break
+                            self.screen_manager.current_screen = "home"
+                            self.show_toaster("Server restarting...")
+                            break
         except ConnectionAbortedError:
             pass
         except Exception as e:
@@ -4486,6 +4661,23 @@ class ChatApp(MDApp):
         except Exception as e:
             print("Error88:", e)
             pass
+
+    @mainthread
+    def addjoin(self, name=None):
+        if name is not None:
+            self.screen_manager.get_screen("chat").chat_list.add_widget(
+                newJoin(text=f"------ {name} joined ------")
+            )
+        else:
+            self.screen_manager.get_screen("chat").chat_list.add_widget(
+                newJoin(text="------ You joined ------")
+            )
+
+    @mainthread
+    def addleave(self, name):
+        self.screen_manager.get_screen("chat").chat_list.add_widget(
+            newLeave(text=f"------ {name} left ------")
+        )
 
     @mainthread
     def send_message_private(self, message, _):
@@ -4623,8 +4815,8 @@ class ChatApp(MDApp):
                     # self.screen_manager.get_screen("chat").chat_list.add_widget(
                     #    Command(text=filename, size_hint_x=.75, halign="center"))
                 # else:
-                    # send as audio
-                    # self.add_audio_cmd(file_path)
+                # send as audio
+                # self.add_audio_cmd(file_path)
 
         except Exception as e:
             print("Error16:", e)
@@ -4645,7 +4837,7 @@ class ChatApp(MDApp):
                 with open("groups.csv", "w") as aaa:
                     aaa.write("")
                 os.remove("groups.csv")
-                
+
                 print("[i] Deleting public_key.txt")
                 with open("data/groups.csv", "a") as aa:
                     for i in range(100):
@@ -4653,7 +4845,7 @@ class ChatApp(MDApp):
                 with open("public_key.txt", "w") as aaa:
                     aaa.write("")
                 os.remove("public_key.txt")
-                
+
                 print("[i] Deleting private_key.txt")
                 with open("private_key.txt", "a") as aa:
                     for i in range(100):
@@ -5026,6 +5218,43 @@ class ChatApp(MDApp):
         self.screen_manager.get_screen("qr-scan").camera.play = False
         self.screen_manager.transition.direction = "right"
         self.screen_manager.current = "chat_private"
+
+    def rename_group(self, new_group_name):
+        # self.group_name
+        self.connect()
+        self.sock.send(f"RENAME_GROUP:{self.group_name}:{new_group_name}:{self.username}:{hash_pwd(self.password)}".encode())
+        out = self.sock.recv(1024)
+        print(out)
+        if out == b"success":
+            self.show_toaster("Changed.")
+            self.screen_manager.get_screen("chat").bot_name.text = new_group_name
+            self.group_name = new_group_name
+        else:
+            self.show_toaster("You don't have permission.")
+
+    def delete_group(self):
+        # self.group_name
+        self.connect()
+        self.sock.send(f"DELETE_GROUP:{self.group_name}:{self.username}:{hash_pwd(self.password)}".encode())
+        out = self.sock.recv(1024)
+        print(out)
+        if out == b"success":
+            self.screen_manager.current = "home"
+            self.show_toaster("Deleted.")
+        else:
+            self.show_toaster("You don't have permission.")
+
+    def go_back_group(self):
+        self.sock.close()
+        self.connect()
+
+        self.sock.send(("ID::::::" + "|||" + self.username + "|||" + self.group_name).encode())
+
+        if not self.group_chat_started:
+            a = threading.Thread(target=self.receive_messages)
+            a.start()
+
+        self.screen_manager.current = "chat"
 
 
 if __name__ == "__main__":

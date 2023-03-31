@@ -68,6 +68,16 @@ def check_username_exist(value):
         return False
 
 
+def is_group_owner(value, group_name):
+    with open('group_db.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        data = [row for row in reader]
+        for row in data:
+            if row['group_admin'] == value and row["group_name"] == group_name:
+                return True
+        return False
+
+
 def check_group_name_exists(value):
     print(value)
     with open('group_db.csv', 'r') as f:
@@ -329,6 +339,12 @@ def handle(client, g_id):
                 for item in form:
                     if item["client"] == client:
                         print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} {item['name']} disconnected.")
+                        members = []
+                        for item2 in dataset:
+                            if item2["group"] == g_id:
+                                members.append(item2["client"])
+                        for person in members:
+                            person.send(f":NEW_LEAVE::{item['name']}")
                         s = True
                 if not s:
                     print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} Unknown client disconnected.")
@@ -563,7 +579,55 @@ def fuck_around(client, address):
             else:
                 client.send(b"error")
         elif xxx.startswith("DELETE_GROUP:"):
-            pass
+            _, group_name, username, paswd = xxx.split(":")
+            if check_username_exist(username) and get_password(username) == paswd:
+                if check_group_name_exists(group_name):
+                    if is_group_owner(username, group_name):
+                        df = pd.read_csv('group_db.csv')
+                        fieldname = 'group_name'
+                        df = df[df[fieldname] != group_name]
+                        df.to_csv('group_db.csv', index=False)
+                        client.send(b"success")
+                        # TODO: Send signal to everyone to delete group
+                        members = []
+                        for item in dataset:
+                            if item["group"] == group_name:
+                                members.append(item["client"])
+                        for person in members:
+                            if person != client:
+                                person.send(b"::GROUP_DELETION_INITIATED::")
+                    else:
+                        client.send(b"error")
+                else:
+                    client.send(b"error")
+        elif xxx.startswith("RENAME_GROUP:"):
+            _, group_name, new_group_name, username, paswd = xxx.split(":")
+            if check_username_exist(username) and get_password(username) == paswd:
+                if check_group_name_exists(group_name):
+                    if is_group_owner(username, group_name):
+                        dataframe = pd.read_csv("group_db.csv")
+                        dataframe.replace(
+                            to_replace=group_name,
+                            value=new_group_name,
+                            inplace=True
+                        )
+                        dataframe.to_csv("group_db.csv", index=False)
+                        client.send(b"success")
+                        # TODO: Send signal to everyone to rename group
+                        members = []
+                        for item in dataset:
+                            if item["group"] == group_name:
+                                members.append(item["client"])
+                        for person in members:
+                            if person != client:
+                                person.send(f"::RENAME_OF_GROUP:::{new_group_name}".encode())
+                    else:
+                        client.send(b"error")
+                else:
+                    client.send(b"error")
+            else:
+                client.send(b"error")
+
         else:
             if xxx.startswith("ID:::::"):
                 _, nickname, group_id = xxx.split("|||")
@@ -573,6 +637,13 @@ def fuck_around(client, address):
                 form.append({"client": client, "name": nickname})
 
                 print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} {nickname} joined.")
+
+                members = []
+                for item in dataset:
+                    if item["group"] == group_id:
+                        members.append(item["client"])
+                for person in members:
+                    person.send(f":NEW_JOIN::{nickname}")
 
                 thread = threading.Thread(target=handle, args=(client, group_id,))
                 thread.start()
