@@ -3498,6 +3498,7 @@ def hashCrackWordlist(userHash):
 
 ######################### Main #########################
 class ChatApp(MDApp):
+    sock = None
     i = 0
     key_genned = False
 
@@ -3626,18 +3627,11 @@ class ChatApp(MDApp):
 
     def on_pause(self):
         # Minimize the window to prevent contents from being visible
-        try:
-            Window.minimize()
-        except:
-            pass
         self.screen_manager.opacity = 0
+        return True
 
     def on_resume(self):
         # Restore the window when the application is resumed
-        try:
-            Window.restore()
-        except:
-            pass
         self.screen_manager.opacity = 1
 
     def connect(self, timeout=None):
@@ -4260,7 +4254,7 @@ class ChatApp(MDApp):
                 self.screen_manager.get_screen("group_join").butt.hint_text = "Enter group number"
                 self.rooms = my_bitch_rooms
                 for i, item in enumerate(my_bitch_rooms):
-                    if item != "" and item != None:
+                    if item != "" and item is not None:
                         # print("1")
                         item = item.split("|")[0]
                         self.screen_manager.get_screen("group_join").group_list.add_widget(
@@ -4749,7 +4743,7 @@ class ChatApp(MDApp):
                 allowed = ["pdf", "txt", "jpg", "jpeg", "png", "docx", "bat", "exe", "apk", "mpg", "mp3", "wav", "aiff",
                            "ogg", "wma"]
                 img = ["jpg", "jpeg", "png"]
-                audio = ["mpg", "mp3", "wav", "aiff", "ogg", "wma"]
+                # audio = ["mpg", "mp3", "wav", "aiff", "ogg", "wma"]
 
                 if filename.split(".")[-1] not in allowed:
                     self.show_toaster("File-ending not allowed.")
@@ -5178,10 +5172,10 @@ class ChatApp(MDApp):
         """
         camera = self.screen_manager.get_screen("qr-scan").camera
         texture = camera.texture
-        size = texture.size
+        size2 = texture.size
         pixels = texture.pixels
-        print(texture, size, pixels)
-        pil_image = IImage.frombytes(mode='RGBA', size=size, data=pixels)
+        print(texture, size2, pixels)
+        pil_image = IImage.frombytes(mode='RGBA', size=size2, data=pixels)
         self.scan(pil_image)
         print("Captured")
 
