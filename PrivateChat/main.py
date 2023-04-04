@@ -15,7 +15,6 @@ from kivy.properties import StringProperty, NumericProperty  # for chat screen, 
 from kivy.uix.image import Image
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
-from kivy.uix.popup import Popup
 
 # Cryptography
 import base64  # For encrypting messages
@@ -3158,20 +3157,144 @@ MDScreen:
     
 """
 
+popup_update = """
+MDScreen:
+    name: "popup_update"
+
+    MDFloatLayout:
+        MDFloatLayout:
+            # md_bg_color: 245/255, 245/255, 245/255, 1
+            size_hint_y: .11
+            pos_hint: {"center_y": .95}
+            MDIconButton:
+                icon: "close"
+                pos_hint: {"center_y": .5, "center_x": .9}
+                user_font_size: "30sp"
+                theme_text_color: "Custom"
+                text_color: rgba(26, 24, 58, 255)
+                on_release:
+                    root.manager.transition.direction = "right"
+                    root.manager.current = "login"
+        MDLabel:
+            text: "Update Available"
+            font_name: "BPoppins"
+            font_size: "23sp"
+            pos_hint: {"center_y": .9}
+            halign: "center"
+            color: rgba(34, 34, 34, 255)
+        MDLabel:
+            text: "Please update to the new version."
+            font_name: "BPoppins"
+            font_size: "13sp"
+            size_hint_x: .85
+            pos_hint: {"center_x": .5, "center_y": .8}
+            halign: "center"
+            color: rgba(127, 127, 127, 255)
+        Button:
+            text: "Update Now"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .2}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(52, 0, 231, 255)
+            on_release:
+                app.download_update()
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+        Button:
+            text: "Skip"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .1}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(240, 40, 40, 255)
+            on_release:
+                root.manager.transition.direction = "right"
+                root.manager.current = "login"
+            canvas.before:
+                Color:
+                    rgb: rgba(240, 40, 40, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+        
+"""
+popup_warning = """
+MDScreen:
+    name: "popup_warning"
+
+    MDFloatLayout:
+        MDFloatLayout:
+            # md_bg_color: 245/255, 245/255, 245/255, 1
+            size_hint_y: .11
+            pos_hint: {"center_y": .95}
+            MDIconButton:
+                icon: "close"
+                pos_hint: {"center_y": .5, "center_x": .9}
+                user_font_size: "30sp"
+                theme_text_color: "Custom"
+                text_color: rgba(26, 24, 58, 255)
+                on_release:
+                    root.manager.transition.direction = "right"
+                    root.manager.current = "login"
+        MDLabel:
+            text: "Update Available"
+            font_name: "BPoppins"
+            font_size: "23sp"
+            pos_hint: {"center_y": .9}
+            halign: "center"
+            color: rgba(34, 34, 34, 255)
+        MDLabel:
+            text: "Please update to the new version."
+            font_name: "BPoppins"
+            font_size: "13sp"
+            size_hint_x: .85
+            pos_hint: {"center_x": .5, "center_y": .8}
+            halign: "center"
+            color: rgba(127, 127, 127, 255)
+        Button:
+            text: "Update Now"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .2}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(52, 0, 231, 255)
+            on_release:
+                app.download_update()
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+        Button:
+            text: "Skip"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .1}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(240, 40, 40, 255)
+            on_release:
+                root.manager.transition.direction = "right"
+                root.manager.current = "login"
+            canvas.before:
+                Color:
+                    rgb: rgba(240, 40, 40, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+"""
+
 # TODO: Encrypted Calling
 
 # socket.setdefaulttimeout(5)
 
 # from PIL import Image
-if platform == "android":
-    from android.permissions import request_permissions, Permission
-    from android.storage import primary_external_storage_path
 
-    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
-                         Permission.CAMERA, Permission.INTERNET])
-else:
-    pass
-    # Window.size = (310, 580)
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
 
@@ -3204,8 +3327,15 @@ try:
 except:
     HOST, PORT = None, None
 
+if platform == "android":
+    from android.permissions import request_permissions, Permission
+    from android.storage import primary_external_storage_path
 
-# HOST, PORT = "localhost", 5000
+    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
+                         Permission.CAMERA, Permission.INTERNET, Permission.INSTALL_PACKAGES])
+else:
+    Window.size = (310, 580)
+    HOST, PORT = "localhost", 5000
 
 
 def connect_again():
@@ -3553,17 +3683,9 @@ class ChatApp(MDApp):
 
     group_name = None
 
+    download_url = None
+
     def build(self):
-        try:
-            print(self.get_version())
-            tm = os.stat("private_key.txt").st_atime
-            print("Opened", time.ctime(tm))
-            print("Created", time.ctime(js["last_accessed"]))
-            if js["last_accessed"] != "None":
-                if js["last_accessed"] != tm and tm > js["last_accessed"]:
-                    print("Potential misuse of private_key.txt")
-        except:
-            pass
         try:
             """
             # set up PyAudio
@@ -3581,7 +3703,7 @@ class ChatApp(MDApp):
                                              rate=self.RATE, output=True, input_device_index=0,
                                              frames_per_buffer=self.CHUNK)
             """
-            self.check_for_updates()
+            # self.check_for_updates()
             self.CHANNELS = 1
             self.BLOCK_SIZE = 1024
             self.sound = SoundLoader.load('dial.wav')
@@ -3600,6 +3722,8 @@ class ChatApp(MDApp):
 
             self.public_key = None
             self.private_key = None
+
+            # threading.Thread(target=self.check_for_updates).start()
 
             self.screen_manager = ScreenManager()
 
@@ -3636,14 +3760,33 @@ class ChatApp(MDApp):
 
             self.screen_manager.add_widget(Builder.load_string(group_settings))
 
+            self.screen_manager.add_widget(Builder.load_string(popup_update))
+            self.screen_manager.add_widget(Builder.load_string(popup_warning))
+
+            Clock.schedule_once(self.check_for_updates, 0)
+            # Clock.schedule_once(self.check_unauthorized_access, 0)
+
             return self.screen_manager
         except Exception as e:
             print("Error21:", e)
 
+    def check_unauthorized_access(self):
+        try:
+            print(self.get_version())
+            tm = os.stat("private_key.txt").st_atime
+            print("Opened", time.ctime(tm))
+            print("Created", time.ctime(js["last_accessed"]))
+            if js["last_accessed"] != "None":
+                if js["last_accessed"] != tm and tm > js["last_accessed"]:
+                    print("Potential misuse of private_key.txt")
+                    self.screen_manager.current = "popup_warning"
+        except:
+            pass
+
     def get_version(self):
         return "1.0"
 
-    def check_for_updates(self):
+    def check_for_updates(self, *args):
         # send a request to the update server to check for updates
         update_url = "https://api.protdos.com/update.json"  # replace with your update URL
         response = requests.get(update_url)
@@ -3656,10 +3799,11 @@ class ChatApp(MDApp):
 
             if update_version and update_url and update_version != self.get_version():
                 print("update...")
-                # self.download_update(update_url)
+                self.download_url = update_url
+                self.screen_manager.current = "popup_update"
 
-    def download_update(self, url):
-        response = requests.get(url)
+    def download_update(self):
+        response = requests.get(self.download_url)
 
         if response.status_code == 200:
             with tempfile.NamedTemporaryFile(suffix=".apk", delete=False) as f:
