@@ -703,6 +703,7 @@ def receive():
         try:
             client, address = server.accept()
             print("Connected with {}".format(str(address)))
+            client.settimeout(15)
 
             threading.Thread(target=fuck_around, args=(client, address,)).start()
 

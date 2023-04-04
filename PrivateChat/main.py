@@ -1,4 +1,5 @@
-# KivyMD
+import json
+
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivymd.toast import toast  # for sending toast messages
@@ -14,6 +15,7 @@ from kivy.properties import StringProperty, NumericProperty  # for chat screen, 
 from kivy.uix.image import Image
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
+from kivy.uix.popup import Popup
 
 # Cryptography
 import base64  # For encrypting messages
@@ -45,6 +47,8 @@ from kivy.core.clipboard import Clipboard
 import requests
 from PIL import Image as IImage
 import numpy as np
+import subprocess
+import tempfile
 
 # Request Perms
 from kivy.utils import platform
@@ -2702,7 +2706,7 @@ MDScreen:
         MDLabel:
             text: "Your keys are being generated."
             font_name: "BPoppins"
-            font_size: "16sp"
+            font_size: "14sp"
             pos_hint: {"center_x": .6, "center_y": .79}
             color: rgba(135, 133, 193, 255)
 
@@ -3165,10 +3169,9 @@ if platform == "android":
 
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
                          Permission.CAMERA, Permission.INTERNET])
-
-# Window.size = (310, 580)
-# Window.set_secure(True)
-
+else:
+    pass
+    # Window.size = (310, 580)
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
 
@@ -3187,6 +3190,9 @@ accepted = False
 
 received_secret = False
 sent_secret = False
+
+with open('config.json') as f:
+    js = json.load(f)
 
 # 2.tcp.eu.ngrok.io:13117
 # HOST = "5.tcp.eu.ngrok.io"
@@ -3349,12 +3355,10 @@ def gen(length):
 
 def strength_test(p):
     try:
-        policy = PasswordPolicy.from_names(
-            strength=0.5  # need a password that scores at least 0.5 with its strength
-        )
-        out = policy.test(p)
-        print(len(out))
-        return [True if len(out) == 0 else False]  # returning if password is good or not
+        policy = PasswordPolicy()
+        out = policy.password(p).strength()
+        print(out)
+        return [True if out > 0.35 else False]  # returning if password is good or not
     except Exception as e:
         print("Error20:", e)
 
@@ -3551,6 +3555,16 @@ class ChatApp(MDApp):
 
     def build(self):
         try:
+            print(self.get_version())
+            tm = os.stat("private_key.txt").st_atime
+            print("Opened", time.ctime(tm))
+            print("Created", time.ctime(js["last_accessed"]))
+            if js["last_accessed"] != "None":
+                if js["last_accessed"] != tm and tm > js["last_accessed"]:
+                    print("Potential misuse of private_key.txt")
+        except:
+            pass
+        try:
             """
             # set up PyAudio
             self.audio = pyaudio.PyAudio()
@@ -3567,6 +3581,7 @@ class ChatApp(MDApp):
                                              rate=self.RATE, output=True, input_device_index=0,
                                              frames_per_buffer=self.CHUNK)
             """
+            self.check_for_updates()
             self.CHANNELS = 1
             self.BLOCK_SIZE = 1024
             self.sound = SoundLoader.load('dial.wav')
@@ -3624,6 +3639,36 @@ class ChatApp(MDApp):
             return self.screen_manager
         except Exception as e:
             print("Error21:", e)
+
+    def get_version(self):
+        return "1.0"
+
+    def check_for_updates(self):
+        # send a request to the update server to check for updates
+        update_url = "https://api.protdos.com/update.json"  # replace with your update URL
+        response = requests.get(update_url)
+
+        if response.status_code == 200:
+            # parse the update JSON data
+            update_data = response.json()
+            update_version = update_data.get("version")
+            update_url = update_data.get("url")
+
+            if update_version and update_url and update_version != self.get_version():
+                print("update...")
+                # self.download_update(update_url)
+
+    def download_update(self, url):
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            with tempfile.NamedTemporaryFile(suffix=".apk", delete=False) as f:
+                f.write(response.content)
+                apk_file = f.name
+
+            subprocess.run(["pm", "install", "-r", apk_file], check=True)
+
+            self.stop()
 
     def on_pause(self):
         # Minimize the window to prevent contents from being visible
@@ -3810,6 +3855,7 @@ class ChatApp(MDApp):
             self.screen_manager.current = "home"
 
             self.show_toaster("Account created!")
+
         else:
             self.show_toaster("Error creating account.")
 
@@ -3854,6 +3900,14 @@ class ChatApp(MDApp):
         self.screen_manager.get_screen("signup").password2.text = ""
 
         self.show_toaster("Account created!")
+
+    def on_stop(self):
+        data = {
+            "last_accessed": time.time()
+        }
+
+        with open('config.json', 'w') as f2:
+            json.dump(data, f2)
 
     def login(self, username, password):
         try:
