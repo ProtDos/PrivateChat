@@ -1995,13 +1995,14 @@ MDScreen:
         Button:
             text: "Settings"
             size_hint: .66, .065
-            pos_hint: {"center_x": .5, "center_y": .6}
+            pos_hint: {"center_x": .5, "center_y": .1}
             background_color: 0, 0, 0, 0
             front_name: "BPoppins"
             color: rgba(52, 0, 231, 255)
             on_release:
-                root.manager.transition.direction = "left"
-                root.manager.current = "group_settings"
+                app.show_toaster("Not implemented yet")
+                # root.manager.transition.direction = "left"
+                # root.manager.current = "group_settings"
             canvas.before:
                 Color:
                     rgb: rgba(52, 0, 231, 255)
@@ -3289,11 +3290,105 @@ MDScreen:
                     rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
 """
 
+con = """
+MDScreen:
+    name: "con"
+    slider: slider
+    group_name: group_name
+    
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)
+            on_release:
+                root.manager.transition.direction = "right"
+                root.manager.current = "home"
+        
+        MDLabel:
+            id: group_name
+            text: ""
+            opacity: 0
+            
+        MDLabel:
+            text: "Choose mode"
+            font_name: "BPoppins"
+            font_size: "26sp"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            text: "Please choose type of group."
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .79}
+            color: rgba(135, 133, 193, 255)
+        
+        Slider:
+            id: slider
+            min: 25
+            max: 100
+            step: 1
+            orientation: 'horizontal'   
+            pos_hint: {"center_x": .5, "center_y": .3}
+            
+        Button:
+            text: "Asymmetrical"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .6}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(52, 0, 231, 255)
+            on_release:
+                app.show_toaster("Not implemented yet")
+                # app.create_group_asymmetrical(group_name.text)
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+            
+        Button:
+            text: "Symmetrical"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .5}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(52, 0, 231, 255)
+            on_release:
+                app.create_group_symmetrical(group_name.text, slider.value)
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+        
+        MDLabel:
+            text: "Choose key size:"
+            front_name: "BPoppins"
+            pos_hint: {"center_x": .6, "center_y": .4}
+            font_size: "18sp"
+            color: rgba(135, 133, 193, 255)
+"""
+
 # TODO: Encrypted Calling
 
 # socket.setdefaulttimeout(5)
 
 # from PIL import Image
+
+# TODO: Add screens for group creation:
+"""
+- Select Mode: Symmetrical (more secure, laborious); Asymmetrical (secure), reccomended
+    - symmetrical: works as now, create slider with key length
+    - asymmetrical: no more steps, server backend
+    
+"""
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -3335,7 +3430,7 @@ if platform == "android":
                          Permission.CAMERA, Permission.INTERNET, Permission.INSTALL_PACKAGES])
 else:
     Window.size = (310, 580)
-    HOST, PORT = "localhost", 5000
+    # HOST, PORT = "localhost", 5000
 
 
 def connect_again():
@@ -3685,6 +3780,8 @@ class ChatApp(MDApp):
 
     download_url = None
 
+    current_public_keys_group = []
+
     def build(self):
         try:
             """
@@ -3763,14 +3860,16 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(popup_update))
             self.screen_manager.add_widget(Builder.load_string(popup_warning))
 
+            self.screen_manager.add_widget(Builder.load_string(con))
+
             Clock.schedule_once(self.check_for_updates, 0)
-            # Clock.schedule_once(self.check_unauthorized_access, 0)
+            Clock.schedule_once(self.check_unauthorized_access, 0)
 
             return self.screen_manager
         except Exception as e:
             print("Error21:", e)
 
-    def check_unauthorized_access(self):
+    def check_unauthorized_access(self, *args):
         try:
             print(self.get_version())
             tm = os.stat("private_key.txt").st_atime
@@ -3875,7 +3974,7 @@ class ChatApp(MDApp):
     def sign_up(self, username, password, password2):
         try:
             # local check of username:
-            if len(username) > 10:
+            if len(username) > 12:
                 self.show_toaster("Username too long.")
                 return
             if " " in username:
@@ -4532,16 +4631,24 @@ class ChatApp(MDApp):
         except IndexError:
             self.show_toaster("Invalid key.")
         except Exception:
+            print("aasdasdasdas")
             self.show_toaster("Error")
 
     def create_group(self, name):
+        print(name)
+        self.screen_manager.get_screen("con").group_name.text = name
+        print(self.screen_manager.get_screen("con").group_name.text)
+        self.screen_manager.current = "con"
+
+    def create_group_symmetrical(self, name, length):
+        print("a:", name, length)
         try:
             if name != "":
                 self.screen_manager.get_screen("group_create").name_.text = ""
 
                 global group_key, sock, is_it_my_turn
                 is_it_my_turn = True
-                key = gen(100)
+                key = gen(length)  # 100
                 key = name + "|" + key + "|" + name
                 group_key = key
                 # print(key)
@@ -4582,6 +4689,10 @@ class ChatApp(MDApp):
         except Exception as e:
             print("Error11:", e)
             self.show_toaster("Couldn't create group.")
+
+    def create_group_asymmetrical(self, name):
+        print(name)
+        pass
 
     def load_all(self):
         self.screen_manager.current = "all_load"
