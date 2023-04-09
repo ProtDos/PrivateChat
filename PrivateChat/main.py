@@ -52,6 +52,9 @@ import tempfile
 # Request Perms
 from kivy.utils import platform
 
+from jnius import autoclass
+
+
 """
 - Encrypt Private Messaging
     - https://www.youtube.com/watch?v=U_Q1vqaJi34&t=1070s
@@ -202,6 +205,7 @@ MDScreen:
     text_input2: text_input2
     text_input3: text_input3
     welcome_name: welcome_name
+    switch: switch
 
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
@@ -429,6 +433,21 @@ MDScreen:
                         text_color: 1, 1, 1, 1
                         on_release:
                             app.change_password(text_input3.text)
+                
+                MDSwitch:
+                    id: switch
+                    pos_hint: {"center_x": .8, "center_y": .45}
+                    width: dp(45) 
+                    on_touch_down:
+                        app.secure_check()
+                     
+                
+                MDLabel:
+                    text: "Secure Mode?"
+                    font_name: "MPoppins"
+                    pos_hint: {"center_x": .7, "center_y": .45}
+                    font_size: "14sp"
+                
                 Button:
                     text: "Delete Everything"
                     size_hint: .66, .065
@@ -886,7 +905,73 @@ MDScreen:
                     pos: self.pos
                     radius: [5]
             on_release:
-                app.create_group(name_.text)
+                app.create_group_symmetrical(name_.text)
+
+
+"""
+group_create_asy = """
+MDScreen:
+    name: "group_create_asy"
+    name_: name_
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)
+            on_release:
+                root.manager.transition.direction = "right"
+                root.manager.current = "home"
+        MDLabel:
+            text: "Group"
+            font_name: "BPoppins"
+            font_size: "26sp"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            text: "Create a group"
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .79}
+            color: rgba(135, 133, 193, 255)
+        MDFloatLayout:
+            size_hint: .7, .07
+            pos_hint: {"center_x": .5, "center_y": .63}
+            TextInput:
+                id: name_
+                hint_text: "Group Name"
+                font_name: "MPoppins"
+                size_hint_y: .75
+                pos_hint: {"center_x": .43, "center_y": .5}
+                background_color: 1, 1, 1, 0
+                foreground_color: rgba(0, 0, 59, 255)
+                cursor_color: rgba(0, 0, 59, 255)
+                font_size: "14sp"
+                cursor_width: "2sp"
+                multiline: False
+            MDFloatLayout:
+                pos_hint: {"center_x": .45, "center_y": 0}
+                size_hint_y: .03
+                md_bg_color: rgba(178, 178, 178, 255)
+
+        Button:
+            text: "Create"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .34}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [5]
+            on_release:
+                app.create_group_asymmetrical(name_.text)
 
 
 """
@@ -1076,7 +1161,8 @@ MDScreen:
                     color: rgba(52, 0, 231, 255)
                     on_release:
                         root.manager.transition.direction = "left"
-                        root.manager.current = "group_create"
+                        # root.manager.current = "group_create"
+                        root.manager.current = "con"
                     canvas.before:
                         Color:
                             rgb: rgba(52, 0, 231, 255)
@@ -1487,6 +1573,8 @@ new_group_join = """
 MDScreen:
     name: "new_group_join"
     name_: name_
+    switch: switch
+    
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -1530,6 +1618,18 @@ MDScreen:
                 pos_hint: {"center_x": .45, "center_y": 0}
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
+        
+        MDSwitch:
+            id: switch
+            pos_hint: {"center_x": .8, "center_y": .45}
+            width: dp(45)  
+        
+        MDLabel:
+            text: "Asymmetrical?"
+            font_name: "MPoppins"
+            pos_hint: {"center_x": .7, "center_y": .45}
+            font_size: "14sp"
+                     
 
         Button:
             text: "Join"
@@ -1545,7 +1645,7 @@ MDScreen:
                     pos: self.pos
                     radius: [5]
             on_release:
-                app.join_new_group(name_.text)
+                app.join_new_group(name_.text, switch.active)
 
 
 """
@@ -2852,7 +2952,7 @@ MDScreen:
             text: "Transfer or receive your secret key."
             font_name: "BPoppins"
             font_size: "18sp"
-            pos_hint: {"center_x": .6, "center_y": .79}
+            pos_hint: {"center_x": .6, "center_y": .75}
             color: rgba(135, 133, 193, 255)
 
         Button:
@@ -3294,7 +3394,8 @@ con = """
 MDScreen:
     name: "con"
     slider: slider
-    group_name: group_name
+    btn: btn
+    llabel: llabel
     
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
@@ -3307,11 +3408,6 @@ MDScreen:
             on_release:
                 root.manager.transition.direction = "right"
                 root.manager.current = "home"
-        
-        MDLabel:
-            id: group_name
-            text: ""
-            opacity: 0
             
         MDLabel:
             text: "Choose mode"
@@ -3333,7 +3429,11 @@ MDScreen:
             max: 100
             step: 1
             orientation: 'horizontal'   
-            pos_hint: {"center_x": .5, "center_y": .3}
+            pos_hint: {"center_x": .5, "center_y": .35}
+            size_hint_x: 0.7
+            opacity: 0
+            
+            cursor_image: "abc.png"
             
         Button:
             text: "Asymmetrical"
@@ -3343,8 +3443,8 @@ MDScreen:
             front_name: "BPoppins"
             color: rgba(52, 0, 231, 255)
             on_release:
-                app.show_toaster("Not implemented yet")
-                # app.create_group_asymmetrical(group_name.text)
+                # app.show_toaster("Not implemented yet")
+                app.create_group_asymmetrical("None")
             canvas.before:
                 Color:
                     rgb: rgba(52, 0, 231, 255)
@@ -3360,7 +3460,10 @@ MDScreen:
             front_name: "BPoppins"
             color: rgba(52, 0, 231, 255)
             on_release:
-                app.create_group_symmetrical(group_name.text, slider.value)
+                llabel.opacity = 1
+                slider.opacity = 1
+                btn.opacity = 1
+                # app.create_group_symmetrical("None", slider.value)
             canvas.before:
                 Color:
                     rgb: rgba(52, 0, 231, 255)
@@ -3369,11 +3472,313 @@ MDScreen:
                     rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
         
         MDLabel:
+            id: llabel
             text: "Choose key size:"
             front_name: "BPoppins"
             pos_hint: {"center_x": .6, "center_y": .4}
             font_size: "18sp"
             color: rgba(135, 133, 193, 255)
+            opacity: 0
+        
+        Button:
+            id: btn
+            opacity: 0
+            text: "Continue"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .22}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(52, 0, 231, 255)
+            on_release:
+                app.create_group_symmetrical("None", slider.value)
+            canvas.before:
+                Color:
+                    rgb: rgba(52, 0, 231, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+        
+"""
+
+chat_asy = """
+#:import Clipboard kivy.core.clipboard.Clipboard
+<Command>
+    size_hint_y: None
+    pos_hint: {"right": .98}
+    height: self.texture_size[1]
+    padding: 12, 10
+    theme_text_color: "Custom"
+    text_color: 1, 1, 1, 1
+    canvas.before:
+        Color:
+            rgb: rgba(52, 0, 234, 255)
+        RoundedRectangle:
+            size: self.width, self.height
+            pos: self.pos
+            radius: [23, 23, 0, 23]
+            on_touch_down:
+                app.message_click()
+<Response>
+    size_hint_y: None
+    pos_hint: {"x": .02}
+    #height: self.texture_size[1]
+    padding: 12, 10
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1, 1)
+        RoundedRectangle:
+            size: self.width, self.height
+            pos: self.pos
+            radius: [23, 23, 23, 0]
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 0
+        Label:
+            text: root.fro
+            font_size: 40
+            color: (0, 0, 1, 1)
+            halign: 'left'
+            size_hint_x: .22
+        MDLabel:
+            text: root.text
+            font_size: 50
+            halign: "center"
+<AddImage>
+    size_hint_y: None
+    pos_hint: {"x": -.3}
+    height: 600
+
+<AddImageCommand>
+    size_hint_y: None
+    pos_hint: {"right": 1.2}
+    height: 600
+
+<AddFile>
+    # size_hint_y: None
+    # pos_hint: {"x": .02}
+    # height: self.texture_size[1]
+    # padding: 12, 10
+
+    size_hint_y: None
+    pos_hint: {"x": .02}
+    padding: 12, 10
+    theme_text_color: "Custom"
+
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1, 1)
+        RoundedRectangle:
+            size: self.width, self.height
+            pos: self.pos
+            radius: [23, 23, 23, 0]
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        adaptive_height: True
+        MDBoxLayout:
+            MDLabel:
+                id: llabel
+                text: root.file_source
+                font_size: 12
+                color: (0, 0, 1, 1)
+                halign: 'right'
+                size_hint_x: .22
+            MDIconButton:
+                icon: "download"
+                on_release:
+                    app.download(llabel.text)
+
+<AddFileCommand>
+    size_hint_y: None
+    pos_hint: {"right": .98}
+    padding: 12, 10
+    theme_text_color: "Custom"
+
+    canvas.before:
+        Color:
+            rgb: rgba(52, 0, 234, 255)
+        RoundedRectangle:
+            size: self.width, self.height
+            pos: self.pos
+            radius: [23, 23, 0, 23]
+
+    MDBoxLayout:
+        orientation: 'horizontal'
+        adaptive_height: True
+        # size_hint: None, None
+        MDBoxLayout:
+            MDLabel:
+                id: llabel
+                text: root.file_source
+                font_size: 12
+                color: 1, 1, 1, 1
+                halign: 'right'
+                size_hint_x: .22
+            MDIconButton:
+                icon: "download"
+                on_release:
+                    app.download(llabel.text)
+<AddAudio>
+    size_hint_y: None
+    pos_hint: {"x": .02}
+    # height: self.texture_size[1]
+    padding: 12, 10
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1, 1)
+        RoundedRectangle:
+            size: self.width, self.height
+            pos: self.pos
+            radius: [23, 23, 23, 0]
+    MDBoxLayout:
+        orientation: 'vertical'
+        adaptive_height: True
+        MDBoxLayout:
+            MDLabel:
+                id: llabel
+                text: root.file_source
+                font_size: 12
+                color: (0, 0, 1, 1)
+                halign: 'left'
+                size_hint_x: .22
+            MDIconButton:
+                icon: "download"
+                on_release:
+                    app.download(llabel.text)
+
+<AddAudioCommand>
+    size_hint_y: None
+    pos_hint: {"right": .98}
+    padding: 12, 10
+    theme_text_color: "Custom"
+
+    canvas.before:
+        Color:
+            rgb: rgba(52, 0, 234, 255)
+        RoundedRectangle:
+            size: self.width, self.height
+            pos: self.pos
+            radius: [23, 23, 0, 23]
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        adaptive_height: True
+        # size_hint: None, None
+        MDBoxLayout:
+            MDLabel:
+                text: "Play Audio"
+                font_size: 12
+                color: (0, 0, 1, 1)
+                font_name: "BPoppins"
+            MDIconButton:
+                id: play_pause
+                icon: "play-circle-outline"  # pause-circle-outline
+                on_release:
+                    root.play(root.file_source)
+<newJoin>
+    size_hint_y: None
+    padding: 12, 10
+    theme_text_color: "Custom"
+    text_color: 142, 142, 142, 0.77
+    halign: "center"
+    valign: "center"
+
+<newLeave>
+    size_hint_y: None
+    padding: 12, 10
+    theme_text_color: "Custom"
+    text_color: 142, 142, 142, 0.77
+    halign: "center"
+    valign: "center"
+
+MDScreen:
+    name: "chat_asy"
+    bot_name: bot_name
+    chat_list: chat_list
+    text_input: text_input
+
+    MDFloatLayout:
+        MDFloatLayout:
+            md_bg_color: 245/255, 245/255, 245/255, 1
+            size_hint_y: .11
+            pos_hint: {"center_y": .95}
+            MDIconButton:
+                icon: "arrow-left"
+                pos_hint: {"center_y": .5}
+                user_font_size: "30sp"
+                theme_text_color: "Custom"
+                text_color: rgba(26, 24, 58, 255)
+                on_release:
+                    app.sock.close()
+                    root.manager.transition.direction = "right"
+                    root.manager.current = "home"
+            MDIconButton:
+                icon: "content-copy"
+                pos_hint: {"center_x": .9, "center_y": .5}
+                on_release:
+                    app.show_settings_asy()
+
+            MDLabel:
+                text: ""
+                id: bot_name
+                pos_hint: {"center_y": .5}
+                halign: "center"
+                font_name: "BPoppins"
+                font_size: "25sp"
+                theme_text_color: "Custom"
+                text_color: 53/255, 56/255, 60/255, 1
+
+        ScrollView:
+            size_hint_y: .77
+            pos_hint: {"x": 0, "y": .116}
+            do_scroll_x: False
+            do_scroll_y: True
+            BoxLayout:
+                id: chat_list
+                orientation: "vertical"
+                size: (root.width, root.height)
+                height: self.minimum_height
+                size_hint: None, None
+                pso_hint: {"top": 10}
+                cols: 1
+                spacing: 5
+        MDFloatLayout:
+            md_bg_color: 245/255, 245/255, 245/255, 1
+            size_hint_y: .11
+            MDFloatLayout:
+                size_hint: .7, .60
+                pos_hint: {"center_x": .45, "center_y": .5}
+                canvas:
+                    Color:
+                        rgb: (238/255, 238/255, 238/255, 1)
+                    RoundedRectangle:
+                        size: self.size
+                        pos: self.pos
+                        radius: [23, 23, 23, 23]
+                TextInput:
+                    id: text_input
+                    hint_text: "Type something..."
+                    size_hint: 1, None
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    font_size: "12sp"
+                    height: self.minimum_height
+                    multiline: False
+                    cursor_color: 1, 170/255, 23/255, 1
+                    cursor_width: "2sp"
+                    foreground_color: 1, 170/255, 23/255, 1
+                    background_color: 0, 0, 0, 0
+                    padding: 15
+                    font_name: "BPoppins"
+            MDIconButton:
+                icon: "send"
+                pos_hint: {"center_x": .91, "center_y": .5}
+                user_font_size: "18sp"
+                theme_text_color: "Custom"
+                text_color: 0, 0, 0, 1
+                #foreground_color: rgba(0, 0, 0, 1)
+                #md_bg_color: rgba(52, 0, 231, 255)
+                on_release:
+                    app.send_message_asy(text_input.text)
 """
 
 # TODO: Encrypted Calling
@@ -3381,14 +3786,6 @@ MDScreen:
 # socket.setdefaulttimeout(5)
 
 # from PIL import Image
-
-# TODO: Add screens for group creation:
-"""
-- Select Mode: Symmetrical (more secure, laborious); Asymmetrical (secure), reccomended
-    - symmetrical: works as now, create slider with key length
-    - asymmetrical: no more steps, server backend
-    
-"""
 
 Window.keyboard_anim_args = {"d": .2, "t": "in_out_expo"}
 Window.softinput_mode = "below_target"
@@ -3425,12 +3822,15 @@ except:
 if platform == "android":
     from android.permissions import request_permissions, Permission
     from android.storage import primary_external_storage_path
+    from android.runnable import run_on_ui_thread
+    from android import mActivity as mA
+    from android import Environment
 
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
                          Permission.CAMERA, Permission.INTERNET, Permission.INSTALL_PACKAGES])
 else:
     Window.size = (310, 580)
-    # HOST, PORT = "localhost", 5000
+    HOST, PORT = "localhost", 5000
 
 
 def connect_again():
@@ -3775,12 +4175,35 @@ class ChatApp(MDApp):
     stop_genning = False
 
     group_chat_started = False
+    group_asy_chat_started = False
 
     group_name = None
 
     download_url = None
 
     current_public_keys_group = []
+
+    key_length = 100
+
+    screenshot_dir = ""
+
+    previous_screenshot_count = 0
+
+    """  Flag Secure
+    @run_on_ui_thread
+    def on_start(self):
+        LayoutParams = autoclass('android.view.WindowManager$LayoutParams')
+        window = mA.getWindow()
+        params = window.getAttributes()
+        params.setDecorFitsSystemWindows = False
+        params.layoutInDisplayCutoutMode = LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        window.setAttributes(params)
+        window.setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE)
+        try:
+            window.addFlags(LayoutParams.FLAG_SECURE)
+        except:
+            print("aaaa")
+    """
 
     def build(self):
         try:
@@ -3822,6 +4245,11 @@ class ChatApp(MDApp):
 
             # threading.Thread(target=self.check_for_updates).start()
 
+            try:
+                Window.set_icon("logo.png")
+            except:
+                print("Couldn't set icon.")
+
             self.screen_manager = ScreenManager()
 
             self.screen_manager.add_widget(Builder.load_string(login))
@@ -3862,12 +4290,52 @@ class ChatApp(MDApp):
 
             self.screen_manager.add_widget(Builder.load_string(con))
 
+            self.screen_manager.add_widget(Builder.load_string(chat_asy))
+            self.screen_manager.add_widget(Builder.load_string(group_create_asy))
+
             Clock.schedule_once(self.check_for_updates, 0)
             Clock.schedule_once(self.check_unauthorized_access, 0)
 
             return self.screen_manager
         except Exception as e:
             print("Error21:", e)
+
+    def on_start(self):
+        try:
+            if platform == 'android':
+                self.screenshot_dir = os.path.join(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), 'Screenshots')
+            else:
+                self.screenshot_dir = os.path.join(os.path.expanduser('~'), 'Pictures', 'Screenshots')
+        except:
+            print("v1 failed")
+            self.screenshot_dir = '/sdcard/Pictures/Screenshots'
+
+        self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
+        Clock.schedule_interval(self.check_screenshots, 1)
+
+    def check_screenshots(self, dt):
+        current_screenshot_count = len(os.listdir(self.screenshot_dir))
+        if current_screenshot_count > self.previous_screenshot_count:
+            new_screenshot_count = current_screenshot_count - self.previous_screenshot_count
+            print(new_screenshot_count)
+            self.previous_screenshot_count = current_screenshot_count
+            if self.screen_manager.current == "chat":
+                self.addscreenshot("You", mode="chat")
+                self.sock.send(f":SCREENSHOT::{self.username}".encode())
+            elif self.screen_manager.current == "chat_sec":
+                self.addscreenshot("You", mode="chat_sec")
+                self.sock.send(f":SCREENSHOT::{self.username}::{current_chat_with}".encode())
+            elif self.screen_manager.current == "chat_asy":
+                self.addscreenshot("You", mode="chat_asy")
+                self.sock.send(f":SCREENSHOT::{self.username}".encode())
+            else:
+                notification.notify(
+                    title='Screenshot detected.',
+                    message=f'All screenshots will be monitored.',
+                    app_name='Encochat',
+                    timeout=5,
+                )
 
     def check_unauthorized_access(self, *args):
         try:
@@ -4252,7 +4720,6 @@ class ChatApp(MDApp):
             self.connect()
             try:
                 self.screen_manager.get_screen("home").text_input2.text = ""
-                self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {self.username}"
                 if username != "":
                     self.screen_manager.get_screen("home").username_icon.icon = "check"
                     time.sleep(.5)
@@ -4264,6 +4731,7 @@ class ChatApp(MDApp):
                     if r == "success":
                         self.screen_manager.current = "login"
                         self.show_toaster("Username has been changed")
+                        self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {self.username}"
                     else:
                         self.show_toaster("Error changing username.")
                 else:
@@ -4276,19 +4744,20 @@ class ChatApp(MDApp):
             self.show_toaster("Error changing username.")
 
     def change_password(self, new):
+        if hashCrackWordlist(new) is not None or strength_test(new)[0] is False:
+            self.show_toaster("Password isn't strong enough.")
+            return
         try:
-            self.connect()
             self.screen_manager.get_screen("home").text_input3.text = ""
-
             """
             with open("data/auth.txt", "w") as file:
                 file.write(Encrypt(message_=new, key=new).encrypt().decode())
             """
             self.connect()
-            self.sock.send(f"CHANGE_PASSWORD:{self.password}:{new}:{self.username}".encode())
+            self.sock.send(f"CHANGE_PASSWORD:{hash_pwd(self.password)}:{hash_pwd(new)}:{self.username}".encode())
             r = self.sock.recv(1024).decode()
+            print(r)
             if r == "success":
-
                 with open("groups.csv", "r") as file:
                     encrypted_keys = file.read().split("\n")
 
@@ -4307,6 +4776,7 @@ class ChatApp(MDApp):
                         self.show_toaster("Private key couldn't be decrypted.")
                         return
                     private_key = rr.PrivateKey.load_pkcs1(dec_priv)
+
                 enc_priv = Encrypt(message_=private_key.save_pkcs1().decode(), key=new).encrypt().decode()
                 with open("private_key.txt", "w") as file:
                     file.write(enc_priv)
@@ -4314,29 +4784,34 @@ class ChatApp(MDApp):
                 with open("groups.csv", "w") as f:
                     f.write("key\n")
                     for enc_key in encrypted_keys:
-                        # print(enc_key)
-                        dec_key = Decrypt(message_=enc_key, key=self.super_dubba_key).decrypt()
-                        # print(dec_key)
-                        enc_key2 = Encrypt(message_=dec_key, key=new).encrypt().decode()
-                        # print(enc_key2)
-                        f.write(enc_key2 + "\n")
+                        try:
+                            # print(enc_key)
+                            dec_key = Decrypt(message_=enc_key, key=self.super_dubba_key).decrypt()
+                            # print(dec_key)
+                            enc_key2 = Encrypt(message_=dec_key, key=new).encrypt().decode()
+                            # print(enc_key2)
+                            f.write(enc_key2 + "\n")
+                        except:
+                            pass
+
+                """
                 with open("private_chats.csv", "w") as f:
                     for enc_key in encrypted_keys:
-                        # print(enc_key)
-                        dec_key = Decrypt(message_=enc_key, key=self.super_dubba_key).decrypt()
-                        # print(dec_key)
-                        enc_key2 = Encrypt(message_=dec_key, key=new).encrypt().decode()
-                        # print(enc_key2)
-                        f.write(enc_key2 + "\n")
+                        try:
+                            # print(enc_key)
+                            dec_key = Decrypt(message_=enc_key, key=self.super_dubba_key).decrypt()
+                            # print(dec_key)
+                            enc_key2 = Encrypt(message_=dec_key, key=new).encrypt().decode()
+                            # print(enc_key2)
+                            f.write(enc_key2 + "\n")
+                        except:
+                            pass
+                """
 
                 self.password = new
                 self.super_dubba_key = new
 
-                self.screen_manager.get_screen("home").password_icon.icon = "check"
-                time.sleep(.5)
-                self.screen_manager.get_screen("home").password_icon.icon = "account-cog"
-
-                self.screen_manager.current_screen = "login"
+                self.screen_manager.current = "login"
 
                 self.show_toaster("Password has been changed.")
             else:
@@ -4471,39 +4946,43 @@ class ChatApp(MDApp):
                 print("Chat with:", current_chat_with)
                 message = self.sock.recv(1024)
                 print(message)
-                message = message.decode()
-                print("Message received:", message)
-                if message:
-                    if message == "NICK":
-                        self.sock.send(self.username.encode())
-                    elif message.split("#")[1].startswith(current_chat_with):
-                        m = self.sock.recv(1024)
-                        print("Shorted message:", m)
-                        print("Decrypted:", rr.decrypt(m, self.private_key))
-                        m = rr.decrypt(m, self.private_key).decode()
-                        # m = m[2:]
-                        # m = m[:-1]
-                        # print(m)
-                        # print(rr.decrypt(m.encode(), private).decode())
-                        # m = Decrypt(message_=m, key=key).decrypt()
-                        self.add(m)
-                    elif message.startswith(f"INCOMING:{self.username}#{self.id}"):
-                        print("OOOOOKAY")
-                        m = self.sock.recv(1024)
-                        m = rr.decrypt(m, self.private_key).decode()
-                        self.add(m)
-                    else:
-                        try:
-                            sender, mess = message.split("---")
-                            print("Decrypted message:", rr.decrypt(mess, self.private_key).decode())
-                            with open(f"{sender}.txt", "a") as file:
-                                file.write(mess + "\n")
-                            self.notify(f"New message from {sender}", mess)
-                        except:
-                            print("Invalid message received.")
-                            self.add(message)
+                if message.endswith(b"_took_screenshot::"):
+                    p = message.decode().split("_")[0]
+                    self.addscreenshot(p, mode="chat_sec")
                 else:
-                    break
+                    message = message.decode()
+                    print("Message received:", message)
+                    if message:
+                        if message == "NICK":
+                            self.sock.send(self.username.encode())
+                        elif message.split("#")[1].startswith(current_chat_with):
+                            m = self.sock.recv(1024)
+                            print("Shorted message:", m)
+                            print("Decrypted:", rr.decrypt(m, self.private_key))
+                            m = rr.decrypt(m, self.private_key).decode()
+                            # m = m[2:]
+                            # m = m[:-1]
+                            # print(m)
+                            # print(rr.decrypt(m.encode(), private).decode())
+                            # m = Decrypt(message_=m, key=key).decrypt()
+                            self.add(m)
+                        elif message.startswith(f"INCOMING:{self.username}#{self.id}"):
+                            print("OOOOOKAY")
+                            m = self.sock.recv(1024)
+                            m = rr.decrypt(m, self.private_key).decode()
+                            self.add(m)
+                        else:
+                            try:
+                                sender, mess = message.split("---")
+                                print("Decrypted message:", rr.decrypt(mess, self.private_key).decode())
+                                with open(f"{sender}.txt", "a") as file:
+                                    file.write(mess + "\n")
+                                self.notify(f"New message from {sender}", mess)
+                            except:
+                                print("Invalid message received.")
+                                self.add(message)
+                    else:
+                        break
             except Exception as e:
                 print("Errorv3:", e)
                 break
@@ -4591,108 +5070,296 @@ class ChatApp(MDApp):
             print("Error10:", e)
             self.show_toaster("Please load the groups first.")
 
-    def join_new_group(self, key):
-        try:
+    def join_new_group(self, key, state):
+        self.screen_manager.get_screen("new_group_join").switch.active = False
+        if state:
             if key != "":
-                if self.super_dubba_key != "":
-                    self.screen_manager.get_screen("chat").chat_list.clear_widgets()
-                    global group_key, sock, is_it_my_turn
-                    is_it_my_turn = True
-
-                    name = key.split("|")[0]
-                    group_id = key.split("|")[2]
-                    self.screen_manager.get_screen("chat").kkk.text = key
-                    self.screen_manager.get_screen("chat").bot_name.text = name
-                    group_key = key
-                    with open("groups.csv", "r") as file:
-                        aa = file.read().split("\n")
-                    enc_key = Encrypt(message_=key, key=self.super_dubba_key).encrypt().decode()
-                    if enc_key not in aa:
-                        with open("groups.csv", "a") as file:
-                            file.write(f"{enc_key}\n")
-
-                    self.connect()
-                    self.sock.send(f"VALID_GROUP_NAME:{name}".encode())
-                    res = self.sock.recv(1024)
-                    print(res)
-                    if res == b"yes":
-                        self.screen_manager.get_screen("new_group_join").name_.text = ""
-                        self.sock.close()
-                        self.connect()
-                        self.sock.send(("ID::::::" + "|||" + self.username + "|||" + group_id).encode())
-                        self.group_name = name
-                        if not self.group_chat_started:
-                            threading.Thread(target=self.receive_messages).start()
-                        self.screen_manager.current = "chat"
+                self.connect()
+                self.sock.send(f"JOIN_ASY_GROUP:{key}:{self.username}:{hash_pwd(self.password)}".encode())
+                while True:
+                    a = self.sock.recv(1024)
+                    if a == b"error":
+                        self.show_toaster("Couldn't join group.")
+                        return
+                    if a == b"success":
+                        break
                     else:
-                        pass
-                else:
-                    self.screen_manager.current = "login"
-        except IndexError:
-            self.show_toaster("Invalid key.")
-        except Exception:
-            print("aasdasdasdas")
-            self.show_toaster("Error")
+                        print(a)
+                        if a.decode() not in self.current_public_keys_group:
+                            self.current_public_keys_group.append(a.decode())
+
+                self.screen_manager.get_screen("chat_asy").chat_list.clear_widgets()
+                self.screen_manager.get_screen("chat_asy").bot_name.text = key
+
+                self.screen_manager.current = "chat_asy"
+
+                self.addjoin(mode="asy")
+
+                if not self.group_asy_chat_started:
+                    a = threading.Thread(target=self.receive_group_asy)
+                    a.start()
+        else:
+            try:
+                if key != "":
+                    if self.super_dubba_key != "":
+                        self.screen_manager.get_screen("chat").chat_list.clear_widgets()
+                        global group_key, sock, is_it_my_turn
+                        is_it_my_turn = True
+
+                        name = key.split("|")[0]
+                        group_id = key.split("|")[2]
+                        self.screen_manager.get_screen("chat").kkk.text = key
+                        self.screen_manager.get_screen("chat").bot_name.text = name
+                        group_key = key
+                        with open("groups.csv", "r") as file:
+                            aa = file.read().split("\n")
+                        enc_key = Encrypt(message_=key, key=self.super_dubba_key).encrypt().decode()
+                        if enc_key not in aa:
+                            with open("groups.csv", "a") as file:
+                                file.write(f"{enc_key}\n")
+
+                        self.connect()
+                        self.sock.send(f"VALID_GROUP_NAME:{name}".encode())
+                        res = self.sock.recv(1024)
+                        print(res)
+                        if res == b"yes":
+                            self.screen_manager.get_screen("new_group_join").name_.text = ""
+
+                            # self.sock.close()
+                            self.connect()
+                            self.group_name = name
+
+                            self.sock.send(("ID::::::" + "|||" + self.username + "|||" + name).encode())
+                            # sock.send(f"ID::::::{group_id}".encode())
+
+                            self.screen_manager.get_screen("chat").chat_list.clear_widgets()
+                            self.screen_manager.get_screen("chat").bot_name.text = name
+                            # self.screen_manager.get_screen("chat_sec").kkk.text = key
+
+                            self.addjoin()
+
+                            if not self.group_chat_started:
+                                a = threading.Thread(target=self.receive_messages)
+                                a.start()
+                                print("yea")
+
+                            self.screen_manager.current = "chat"
+                        else:
+                            pass
+                    else:
+                        self.screen_manager.current = "login"
+            except IndexError:
+                self.show_toaster("Invalid key.")
+            except Exception:
+                print("aasdasdasdas")
+                self.show_toaster("Error")
 
     def create_group(self, name):
+        print(name)
+        self.connect()
+        self.sock.send(f"VALID_GROUP_NAME:{name}".encode())
+        out = self.sock.recv(1024)
+        print(out)
+        if out != b"error":
+            self.show_toaster("Name already taken.")
+            return
         print(name)
         self.screen_manager.get_screen("con").group_name.text = name
         print(self.screen_manager.get_screen("con").group_name.text)
         self.screen_manager.current = "con"
 
-    def create_group_symmetrical(self, name, length):
+    def create_group_symmetrical(self, name, length=None):
+        self.screen_manager.get_screen("con").llabel.opacity = 0
+        self.screen_manager.get_screen("con").slider.opacity = 0
+        self.screen_manager.get_screen("con").btn.opacity = 0
         print("a:", name, length)
-        try:
-            if name != "":
-                self.screen_manager.get_screen("group_create").name_.text = ""
+        if name == "None":
+            self.screen_manager.current = "group_create"
+            self.key_length = length
+        else:
+            try:
+                if name != "":
+                    self.screen_manager.get_screen("group_create").name_.text = ""
 
-                global group_key, sock, is_it_my_turn
-                is_it_my_turn = True
-                key = gen(length)  # 100
-                key = name + "|" + key + "|" + name
-                group_key = key
-                # print(key)
-                self.screen_manager.get_screen("chat").kkk.text = key
-                self.screen_manager.get_screen("chat").bot_name.text = name
-                # self.screen_manager.get_screen("chat").key.text = key
-                with open("groups.csv", "a") as file:
-                    encc = Encrypt(message_=key, key=self.super_dubba_key).encrypt().decode()
-                    # print(encc)
-                    file.write(f"{encc}\n")
-
-                self.connect()
-                self.sock.send(f"CREATE_GROUP:{name}:{self.username}:{hash_pwd(self.password)}".encode())
-                res = self.sock.recv(1024).decode()
-                print(res)
-
-                if res == "success":
-                    self.sock.close()
-                    self.connect()
-                    self.group_name = name
-
-                    self.sock.send(("ID::::::" + "|||" + self.username + "|||" + name).encode())
-                    # sock.send(f"ID::::::{group_id}".encode())
-
-                    self.screen_manager.get_screen("chat").chat_list.clear_widgets()
+                    global group_key, sock, is_it_my_turn
+                    is_it_my_turn = True
+                    key = gen(self.key_length)  # 100
+                    key = name + "|" + key + "|" + name
+                    group_key = key
+                    # print(key)
+                    self.screen_manager.get_screen("chat").kkk.text = key
                     self.screen_manager.get_screen("chat").bot_name.text = name
-                    # self.screen_manager.get_screen("chat_sec").kkk.text = key
+                    # self.screen_manager.get_screen("chat").key.text = key
+                    with open("groups.csv", "a") as file:
+                        encc = Encrypt(message_=key, key=self.super_dubba_key).encrypt().decode()
+                        # print(encc)
+                        file.write(f"{encc}\n")
 
-                    self.addjoin()
+                    self.connect()
+                    self.sock.send(f"CREATE_GROUP:{name}:{self.username}:{hash_pwd(self.password)}".encode())
+                    res = self.sock.recv(1024).decode()
+                    print(res)
 
-                    if not self.group_chat_started:
-                        a = threading.Thread(target=self.receive_messages)
-                        a.start()
+                    if res == "success":
+                        self.sock.close()
+                        self.connect()
+                        self.group_name = name
 
-                    self.screen_manager.current = "chat"
-                else:
-                    self.show_toaster("Name already taken.")
-        except Exception as e:
-            print("Error11:", e)
-            self.show_toaster("Couldn't create group.")
+                        self.sock.send(("ID::::::" + "|||" + self.username + "|||" + name).encode())
+                        # sock.send(f"ID::::::{group_id}".encode())
+
+                        self.screen_manager.get_screen("chat").chat_list.clear_widgets()
+                        self.screen_manager.get_screen("chat").bot_name.text = name
+                        # self.screen_manager.get_screen("chat_sec").kkk.text = key
+
+                        self.addjoin()
+
+                        if not self.group_chat_started:
+                            a = threading.Thread(target=self.receive_messages)
+                            a.start()
+
+                        self.screen_manager.current = "chat"
+                    else:
+                        self.show_toaster("Name already taken.")
+            except Exception as e:
+                print("Error11:", e)
+                self.show_toaster("Couldn't create group.")
+
+    def show_settings_asy(self):
+        pass
 
     def create_group_asymmetrical(self, name):
         print(name)
+        if name == "None":
+            self.screen_manager.current = "group_create_asy"
+        else:
+            self.current_public_keys_group = []
+            self.connect()
+            self.sock.send(f"CREATE_ASY_GROUP:{name}:{self.username}:{hash_pwd(self.password)}".encode())
+            out = self.sock.recv(1024)
+            if out == b"success":
+                self.connect()
+                self.sock.send(f"JOIN_ASY_GROUP:{name}:{self.username}:{hash_pwd(self.password)}".encode())
+                while True:
+                    a = self.sock.recv(1024)
+                    if a == b"error":
+                        self.show_toaster("Couldn't join group.")
+                        return
+                    if a == b"success":
+                        break
+                    else:
+                        print(a)
+                        if a.decode() not in self.current_public_keys_group:
+                            self.current_public_keys_group.append(a.decode())
+                        print(self.current_public_keys_group)
+
+                self.screen_manager.get_screen("chat_asy").chat_list.clear_widgets()
+                self.screen_manager.get_screen("chat_asy").bot_name.text = name
+
+                self.screen_manager.current = "chat_asy"
+
+                self.addjoin(mode="asy")
+
+                self.sock.settimeout(None)
+
+                if not self.group_asy_chat_started:
+                    a = threading.Thread(target=self.receive_group_asy)
+                    a.start()
+            else:
+                self.show_toaster("Couldn't create group.")
+
+    def receive_group_asy(self):
+        self.sock.settimeout(None)
+        try:
+            while True:
+                username = self.sock.recv(1024).decode()
+                print("U: ", username)
+                if username == "::GROUP_DELETION_INITIATED::":
+                    self.screen_manager.current = "home"
+                    self.show_toaster("Group got deleted.")
+                elif username.startswith("::RENAME_OF_GROUP:::"):
+                    _, new = username.split(":::")
+                    self.group_name = new
+                    self.screen_manager.get_screen("chat_asy").bot_name.text = new
+                elif username.startswith(":NEW_JOIN::"):
+                    _, name, public = username.split("::")
+                    dec = base64.b64decode(public).decode()
+                    if dec not in self.current_public_keys_group:
+                        self.current_public_keys_group.append(dec)
+                    self.addjoin(name, mode="asy")
+                elif username.startswith(":NEW_LEAVE::"):
+                    _, name, public = username.split("::")
+                    dec = base64.b64decode(public).decode()
+                    if dec in self.current_public_keys_group:
+                        self.current_public_keys_group.remove(dec)
+                    self.addleave(name, mode="asy")
+                elif username.startswith(":SCREENSHOT::"):
+                    _, name = username.split("::")
+                    self.addscreenshot(name, mode="chat_asy")
+                else:
+                    message = self.sock.recv(1024)
+                    print("Username: ", username)
+                    print("Message: ", message)
+                    try:
+                        msg = rsa.decrypt(message, self.private_key).decode()
+                        print("Decrypted:", msg)
+                    except Exception as e:
+                        print(e)
+                        pass
+        except ConnectionResetError:
+            self.screen_manager.current = "main"
+            self.show_toaster("Server shutdown.")
+            return
+        except ConnectionAbortedError:
+            pass
+
+    def file_chooser_asy(self, *args):
         pass
+
+    @mainthread
+    def send_message_asy(self, message):
+        try:
+            for item in self.current_public_keys_group:
+                public = rr.PublicKey.load_pkcs1(base64.b64decode(item))
+                print("Loaded public key: ", public)
+                print("Encrypting message.")
+                enc = rsa.encrypt(message.encode(), public)
+                print("Sending username.")
+                self.sock.send(self.username.encode())
+                print("Sending message.")
+                self.sock.send(enc)
+            global size, halign, value
+            if message != "":
+                value = message
+                if len(value) < 6:
+                    size = .22
+                    halign = "center"
+                elif len(value) < 6:
+                    size = .22
+                    halign = "center"
+                elif len(value) < 11:
+                    size = .32
+                    halign = "center"
+                elif len(value) < 16:
+                    size = .45
+                    halign = "center"
+                elif len(value) < 21:
+                    size = .58
+                    halign = "center"
+                elif len(value) < 26:
+                    size = .71
+                    halign = "center"
+                else:
+                    size = .7
+                    halign = "left"
+
+                self.screen_manager.get_screen("chat_asy").chat_list.add_widget(
+                    Command(text=message, size_hint_x=size + .3, halign=halign))
+
+                self.screen_manager.get_screen("chat_asy").text_input.text = ""
+        except Exception as e:
+            print("Error12_asy:", e)
+            self.show_toaster("Couldn't send message.")
 
     def load_all(self):
         self.screen_manager.current = "all_load"
@@ -4745,8 +5412,13 @@ class ChatApp(MDApp):
 
     @mainthread
     def send_message_aaa(self, message, _):
+        print("okay")
+        print(message, _)
+        print(group_key)
         try:
-            self.sock.send('{}: {}'.format(user, Encrypt(message_=message, key=group_key).encrypt().decode()).encode())
+            # self.connect()
+            self.sock.send('{}: {}'.format(self.username, Encrypt(message_=message, key=group_key).encrypt().decode()).encode())
+            print("sent")
             global size, halign, value
             if message != "":
                 value = message
@@ -4787,8 +5459,7 @@ class ChatApp(MDApp):
                 message = self.sock.recv(1024).decode()
                 print("Message: ", message)
                 if message == "::GROUP_DELETION_INITIATED::":
-                    self.screen_manager.current = "home"
-                    self.show_toaster("Group got deleted.")
+                    self.d_group()
                 elif message.startswith("::RENAME_OF_GROUP:::"):
                     _, new = message.split(":::")
                     self.group_name = new
@@ -4799,6 +5470,9 @@ class ChatApp(MDApp):
                 elif message.startswith(":NEW_LEAVE::"):
                     _, name = message.split("::")
                     self.addleave(name)
+                elif message.startswith(":SCREENSHOT::"):
+                    _, name = message.split("::")
+                    self.addscreenshot(name, mode="chat")
                 else:
                     try:
                         sender = message.split(": ")[0]
@@ -4886,9 +5560,15 @@ class ChatApp(MDApp):
                             self.show_toaster("Server restarting...")
                             break
         except ConnectionAbortedError:
+            print("nah")
             pass
         except Exception as e:
             print("Errorv4545", e)
+
+    @mainthread
+    def d_group(self):
+        self.screen_manager.current = "home"
+        self.show_toaster("Group got deleted.")
 
     @mainthread
     def add_file(self, path, _):
@@ -4966,21 +5646,51 @@ class ChatApp(MDApp):
             pass
 
     @mainthread
-    def addjoin(self, name=None):
-        if name is not None:
+    def addjoin(self, name=None, mode=None):
+        if mode is None:
+            if name is not None:
+                self.screen_manager.get_screen("chat").chat_list.add_widget(
+                    newJoin(text=f"------ {name} joined ------")
+                )
+            else:
+                self.screen_manager.get_screen("chat").chat_list.add_widget(
+                    newJoin(text="------ You joined ------")
+                )
+        else:
+            if name is not None:
+                self.screen_manager.get_screen("chat_asy").chat_list.add_widget(
+                    newJoin(text=f"------ {name} joined ------")
+                )
+            else:
+                self.screen_manager.get_screen("chat_asy").chat_list.add_widget(
+                    newJoin(text="------ You joined ------")
+                )
+
+    @mainthread
+    def addleave(self, name, mode=None):
+        if mode is None:
             self.screen_manager.get_screen("chat").chat_list.add_widget(
-                newJoin(text=f"------ {name} joined ------")
+                newLeave(text=f"------ {name} left ------")
             )
         else:
-            self.screen_manager.get_screen("chat").chat_list.add_widget(
-                newJoin(text="------ You joined ------")
+            self.screen_manager.get_screen("chat_asy").chat_list.add_widget(
+                newLeave(text=f"------ {name} left ------")
             )
 
     @mainthread
-    def addleave(self, name):
-        self.screen_manager.get_screen("chat").chat_list.add_widget(
-            newLeave(text=f"------ {name} left ------")
-        )
+    def addscreenshot(self, name, mode=None):
+        if mode == "chat":
+            self.screen_manager.get_screen("chat").chat_list.add_widget(
+                newLeave(text=f"------ {name} took a Screenshot ------")
+            )
+        elif mode == "chat_sec":
+            self.screen_manager.get_screen("chat_sec").chat_list.add_widget(
+                newLeave(text=f"------ {name} took a Screenshot ------")
+            )
+        elif mode == "chat_asy":
+            self.screen_manager.get_screen("chat_asy").chat_list.add_widget(
+                newLeave(text=f"------ {name} took a Screenshot ------")
+            )
 
     @mainthread
     def send_message_private(self, message, _):
@@ -5035,7 +5745,8 @@ class ChatApp(MDApp):
 
     def selected(self, selection):
         try:
-            self.send_file(selection[0])
+            threading.Thread(target=self.send_file, args=(selection[0],)).start()
+            # self.send_file(selection[0])
         except:
             pass
 
@@ -5045,81 +5756,81 @@ class ChatApp(MDApp):
 
             if f_size > 10:
                 self.show_toaster("File is too big.")
-                print("File is too big.")
-            else:
-                filename = str(os.path.basename(file_path))
+                return
 
-                allowed = ["pdf", "txt", "jpg", "jpeg", "png", "docx", "bat", "exe", "apk", "mpg", "mp3", "wav", "aiff",
-                           "ogg", "wma"]
-                img = ["jpg", "jpeg", "png"]
-                # audio = ["mpg", "mp3", "wav", "aiff", "ogg", "wma"]
+            filename = str(os.path.basename(file_path))
 
-                if filename.split(".")[-1] not in allowed:
-                    self.show_toaster("File-ending not allowed.")
-                    return
+            allowed = ["pdf", "txt", "jpg", "jpeg", "png", "docx", "bat", "exe", "apk", "mpg", "mp3", "wav", "aiff",
+                       "ogg", "wma"]
+            img = ["jpg", "jpeg", "png"]
+            # audio = ["mpg", "mp3", "wav", "aiff", "ogg", "wma"]
 
-                if filename.split(".")[-1] not in img:  # and filename.split(".")[-1] not in audio
+            # if filename.split(".")[-1] not in allowed:
+            #     self.show_toaster("File-ending not allowed.")
+            #     return
 
-                    self.sock.send("FILE:::::".encode())
+            if filename.split(".")[-1] not in img:  # and filename.split(".")[-1] not in audio
 
-                    print("FILENAME:", filename)
-                    time.sleep(.5)
-                    print("aaa")
+                self.sock.send("FILE:::::".encode())
 
-                    # self.sock.send(f"{Encrypt(message_=filename, key=group_key).encrypt().decode()}".encode())
-                    self.sock.send(filename.encode())
+                print("FILENAME:", filename)
+                time.sleep(.5)
+                print("aaa")
 
-                    time.sleep(.5)
-                    print("aaa")
+                # self.sock.send(f"{Encrypt(message_=filename, key=group_key).encrypt().decode()}".encode())
+                self.sock.send(filename.encode())
 
-                    self.sock.send(self.username.encode())
+                time.sleep(.5)
+                print("aaa")
 
-                    time.sleep(.5)
-                    print("aaa")
+                self.sock.send(self.username.encode())
 
-                    content = encode_file(file_path, group_key)
-                    print(content)
-                    self.sock.send(content)
+                time.sleep(.5)
+                print("aaa")
 
-                    time.sleep(1)
+                content = encode_file(file_path, group_key)
+                print(content)
+                self.sock.send(content)
 
-                    self.sock.send("DONE:".encode())
+                time.sleep(1)
 
-                    # self.screen_manager.get_screen("chat").chat_list.add_widget(
-                    #    Command(text=filename, size_hint_x=.75, halign="center"))
-                    self.add_file_cmd(filename)
-                elif filename.split(".")[-1] in img:
-                    self.sock.send("IMAGE:::::".encode())
+                self.sock.send("DONE:".encode())
 
-                    time.sleep(1)
-                    print("aaa")
+                # self.screen_manager.get_screen("chat").chat_list.add_widget(
+                #    Command(text=filename, size_hint_x=.75, halign="center"))
+                self.add_file_cmd(filename)
+            elif filename.split(".")[-1] in img:
+                self.sock.send("IMAGE:::::".encode())
 
-                    print("FILENAME:", filename)
-                    # self.sock.send(f"{Encrypt(message_=filename, key=group_key).encrypt().decode()}".encode())
-                    self.sock.send(filename.encode())
+                time.sleep(1)
+                print("aaa")
 
-                    time.sleep(1)
-                    print("aaas")
+                print("FILENAME:", filename)
+                # self.sock.send(f"{Encrypt(message_=filename, key=group_key).encrypt().decode()}".encode())
+                self.sock.send(filename.encode())
 
-                    self.sock.send(self.username.encode())
+                time.sleep(1)
+                print("aaas")
 
-                    time.sleep(1)
-                    print("aaass")
+                self.sock.send(self.username.encode())
 
-                    # with open(file_path, 'rb') as f:
-                    #    img_data = f.read()
-                    img_data = encode_file(file_path, group_key)
-                    self.sock.sendall(img_data)
+                time.sleep(1)
+                print("aaass")
 
-                    time.sleep(.5)
-                    self.sock.sendall(b":ENDED:")
+                # with open(file_path, 'rb') as f:
+                #    img_data = f.read()
+                img_data = encode_file(file_path, group_key)
+                self.sock.sendall(img_data)
 
-                    self.add_img_cmd(file_path)
-                    # self.screen_manager.get_screen("chat").chat_list.add_widget(
-                    #    Command(text=filename, size_hint_x=.75, halign="center"))
-                # else:
-                # send as audio
-                # self.add_audio_cmd(file_path)
+                time.sleep(.5)
+                self.sock.sendall(b":ENDED:")
+
+                self.add_img_cmd(file_path)
+                # self.screen_manager.get_screen("chat").chat_list.add_widget(
+                #    Command(text=filename, size_hint_x=.75, halign="center"))
+            # else:
+            # send as audio
+            # self.add_audio_cmd(file_path)
 
         except Exception as e:
             print("Error16:", e)
@@ -5558,6 +6269,21 @@ class ChatApp(MDApp):
             a.start()
 
         self.screen_manager.current = "chat"
+
+    def secure_check(self):
+        state = self.screen_manager.get_screen("home").switch.active
+
+        if state:
+            self.enable_flag_secure()
+        else:
+            self.disable_flag_secure()
+
+    def enable_flag_secure(self):
+        pass
+
+    def disable_flag_secure(self):
+        pass
+
 
 
 if __name__ == "__main__":

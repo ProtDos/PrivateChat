@@ -29,7 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,txt,mp4,json,wav
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.1
+version = 0.1.2
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.1.0,kivy_garden,pillow,sounddevice,pygments,numpy,hostpython3,openssl,certifi,cffi,chardet,charset_normalizer,android,colorama,cryptography,docutils,idna,kivymd==1.1.1,password_strength,plyer,pyasn1,pycparser,pypiwin32,pypng,qrcode,requests,rsa,six,typing_extensions,urllib3,opencv,pyzbar
+requirements = python3,kivy==2.1.0,kivy_garden,pillow,sounddevice,pygments,numpy,pyjnius,hostpython3,openssl,certifi,cffi,chardet,charset_normalizer,android,colorama,cryptography,docutils,idna,kivymd==1.1.1,password_strength,plyer,pyasn1,pycparser,pypiwin32,pypng,qrcode,requests,rsa,six,typing_extensions,urllib3,opencv,pyzbar
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -98,13 +98,13 @@ android.presplash_color = #FFFFFF
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
-android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, MICROPHONE, RECORD_AUDIO, CAMERA, INSTALL_PACKAGES  # MANAGE_EXTERNAL_STORAGE
+android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, MICROPHONE, RECORD_AUDIO, CAMERA, INSTALL_PACKAGES, SECURE_DISPLAY
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
 # (int) Target Android API, should be as high as possible.
-android.api = 31
+# android.api = 31
 
 # (int) Minimum API your APK / AAB will support.
 #android.minapi = 21
@@ -293,7 +293,7 @@ android.archs = arm64-v8a, armeabi-v7a
 # android.numeric_version = 1
 
 # (bool) enables Android auto backup feature (Android API >=23)
-android.allow_backup = True
+# android.allow_backup = True
 
 # (str) XML file for custom backup rules (see official auto backup documentation)
 # android.backup_rules =
@@ -308,7 +308,7 @@ android.allow_backup = True
 # android.no-byte-compile-python = False
 
 # (str) The format used to package the app for release mode (aab or apk or aar).
-android.release_artifact = aab
+# android.release_artifact = aab
 
 # (str) The format used to package the app for debug mode (apk or aar).
 # android.debug_artifact = apk

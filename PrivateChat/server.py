@@ -1,3 +1,4 @@
+import base64
 import socket
 import threading
 from datetime import datetime
@@ -21,6 +22,14 @@ nicknames = []
 
 dataset = []
 form = []
+
+####
+clients_asy = []
+nicknames_asy = []
+
+dataset_asy = []
+form_asy = []
+####
 
 private_chats = []
 
@@ -56,6 +65,26 @@ def replace_value(old_value, new_value, column_name):
     df = pd.read_csv('database.csv')
     df.loc[df[column_name] == old_value, column_name] = new_value
     df.to_csv('database.csv', index=False)
+
+
+def replace_username_db(username, new_username):
+    df = pd.read_csv('group_db.csv')
+    df.loc[df["group_admin"] == username, "group_admin"] = new_username
+    df.to_csv('group_db.csv', index=False)
+
+
+def change_password(username, new):
+    with open('database.csv', 'r', newline='') as file:
+        reader = csv.reader(file)
+        rows = []
+        for row in reader:
+            if row[0] == username:
+                row[1] = new
+            rows.append(row)
+
+    with open('database.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(rows)
 
 
 def check_username_exist(value):
@@ -161,6 +190,31 @@ def broadcast(message, client):
         pass
 
 
+def broadcast_asy(message, client, username):
+    try:
+        group_id = None
+        for item in dataset_asy:
+            if item["client"] == client:
+                group_id = item["group"]
+        if group_id is None:
+            print("User not in list of asy")
+            pass
+        else:
+            members = []
+            for item in dataset_asy:
+                if item["group"] == group_id:
+                    members.append(item["client"])
+            # print(message)
+            for person in members:
+                # if person != client:
+                    person.send(username)
+                    print("asdadasd")
+                    person.send(message)
+
+    except KeyboardInterrupt:
+        pass
+
+
 def broadcast_file(name, client, data, sender):
     try:
         print("okay")
@@ -239,15 +293,19 @@ def broadcast_image(name, client, data, sender, final):
 
 
 def handle(client, g_id):
+    print("handling")
     dataset.append({"client": client, "group": g_id})
     while True:
         try:
             pp = False
             message = client.recv(1024)
+            print(message)
 
             if message == b'':
-                pp = True
-                pass
+                print("cl disconnected ig")
+                break
+                # pp = True
+                # pass
             elif message.decode() == "FILE:::::":
                 # TODO: add try-except everywhere
                 pp = True
@@ -326,6 +384,22 @@ def handle(client, g_id):
                         if person != client:
                             person.sendall(data)
                 print("done")
+            elif message.decode().startswith(":SCREENSHOT::"):
+                print("yes")
+                _, name = message.decode().split("::")
+                print(f"{name} took a screenshot.")
+                pp = True
+
+                for item in form:
+                    if item["client"] == client:
+                        members = []
+                        for item2 in dataset:
+                            if item2["group"] == g_id:
+                                members.append(item2["client"])
+                        for person in members:
+                            if person != client:
+                                person.send(f":SCREENSHOT::{item['name']}".encode())
+                # TODO: Send to every member in group, notify
 
             if not pp:
                 if message.decode() == "PRIV:":
@@ -343,8 +417,9 @@ def handle(client, g_id):
                         for item2 in dataset:
                             if item2["group"] == g_id:
                                 members.append(item2["client"])
+                                dataset.remove({"client": client, "group": g_id})
                         for person in members:
-                            person.send(f":NEW_LEAVE::{item['name']}")
+                            person.send(f":NEW_LEAVE::{item['name']}".encode())
                         s = True
                 if not s:
                     print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} Unknown client disconnected.")
@@ -362,25 +437,173 @@ def handle(client, g_id):
             break
         except OSError:
             pass
-    exit("ok")
+    # exit("ok")
+
+
+def handle_asy(client, g_id):
+    dataset_asy.append({"client": client, "group": g_id})
+    # print(dataset_asy)
+    while True:
+        try:
+            pp = False
+            print(dataset_asy)
+            username = client.recv(1024)
+            if username.startswith(b":SCREENSHOT::"):
+                _, name = username.decode().split("::")
+                print(f"{name} took a screenshot.")
+
+                for item in form_asy:
+                    if item["client"] == client:
+                        members = []
+                        for item2 in dataset_asy:
+                            if item2["group"] == g_id:
+                                members.append(item2["client"])
+                        for person in members:
+                            if person != client:
+                                person.send(f":SCREENSHOT::{item['name']}".encode())
+            else:
+                message = client.recv(1024)
+
+                if message == b'':
+                    print("holla")
+                    break
+
+                """
+                elif message.decode() == "FILE:::::":
+                    # TODO: add try-except everywhere
+                    pp = True
+                    filename = client.recv(1024).decode()
+                    sender = client.recv(1024).decode()
+    
+                    al = []
+    
+                    while True:
+                        more_data = client.recv(1024).decode()
+                        if more_data.endswith(":"):
+                            more_data = more_data[:-5]
+                            al.append(more_data)
+                            break
+                        else:
+                            al.append(more_data)
+                        # print(more_data)
+                    complete_data = "".join(al)
+                    print("Data received.")
+                    print(complete_data)
+    
+                    broadcast_file(name=filename, client=client, data=complete_data, sender=sender)
+                elif message.decode() == "IMAGE:::::":
+                    pp = True
+                    filename = client.recv(1024)
+                    sender = client.recv(1024)
+    
+                    print("okay")
+                    members = []
+                    group_id = None
+                    for item in dataset:
+                        if item["client"] == client:
+                            group_id = item["group"]
+                    if group_id is None:
+                        print("User not in list")
+                        pass
+                    else:
+                        members = []
+                        for item in dataset:
+                            if item["group"] == group_id:
+                                members.append(item["client"])
+                        print("sending file")
+    
+                    print(members)
+    
+                    for person in members:
+                        if person != client:
+                            person.send(b"IMAGE_INCOMING")
+                            time.sleep(.5)
+                            print("sent first")
+                            person.send(filename + b"<<MARKER>>" + sender)
+                            time.sleep(.5)
+    
+                    while True:
+                        data = client.recv(1024)
+                        print("data:", data)
+                        if data == b":ENDED:":
+                            for person in members:
+                                if person != client:
+                                    person.send(b":ENDED:")
+                            break
+                        if not data:
+                            for person in members:
+                                if person != client:
+                                    person.send(b":ENDED:")
+                            break
+                        if data.endswith(b":ENDED:"):
+                            for person in members:
+                                if person != client:
+                                    person.sendall(data.split(b":ENDED:")[0])
+                                    time.sleep(.5)
+                                    person.sendall(b":ENDED:")
+                            break
+    
+                        for person in members:
+                            if person != client:
+                                person.sendall(data)
+                    print("done")
+                """
+
+                if not pp:
+                    print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} Message asy: ", message)
+                    broadcast_asy(message, client, username)
+        except ConnectionResetError:
+            try:
+                s = False
+                for item in form_asy:
+                    if item["client"] == client:
+                        dataset_asy.remove({"client": client, "group": g_id})
+                        print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} {item['name']} disconnected.")
+                        members = []
+                        for item2 in dataset_asy:
+                            if item2["group"] == g_id:
+                                members.append(item2["client"])
+                        for person in members:
+                            person.send(f":NEW_LEAVE::{item['name']}::{base64.b64encode(get_public(get_id(item['name']))).decode()}".encode())
+                        s = True
+                if not s:
+                    print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} Unknown client disconnected.")
+                clients_asy.remove(client)
+                for item in dataset_asy:
+                    if item["client"] == client:
+                        dataset_asy.remove(item)
+            except Exception as e:
+                print(e)
+                clients_asy.remove(client)
+                print("Client disconnected x2")
+            break
 
 
 def handle_client_while(client, p):
     while True:
         try:
             request = client.recv(1024)
-            message = client.recv(1024)
-            print("Request: ", request)
-            print("Message:", message)
-            # print("P:", p)
-            request = request.decode()
-            if request.startswith("/pm"):
-                _, idd = request.split(" ")
-                send_message(idd, message, p, buf=False)
+            if request.startswith(b":SCREENSHOT::"):
+                _, name, rec = request.decode().split("::")
+                print(f"{name} took a screenshot.", rec)
+                idd = get_username(rec.replace(" ", "")) + "#" + rec.replace(" ", "")
+                recipient_socket = clients__pr[idd]
+
+                recipient_socket.send(f"{name}_took_screenshot::".encode())
+                # send_message(rec.replace(" ", ""), f"{name}_took_screenshot::".encode(), p, buf=False)
             else:
-                print("Invalid.")
-                client.close()
-            clients__pr[p] = client
+                message = client.recv(1024)
+                print("Request: ", request)
+                print("Message:", message)
+                # print("P:", p)
+                request = request.decode()
+                if request.startswith("/pm"):
+                    _, idd = request.split(" ")
+                    send_message(idd, message, p, buf=False)
+                else:
+                    print("Invalid.")
+                    client.close()
+                clients__pr[p] = client
 
         except Exception as e:
             print(e)
@@ -445,7 +668,7 @@ def send_message(idd, message, p, buf=True):
 def fuck_around(client, address):
     try:
         xxx = client.recv(1024).decode()
-
+        client.settimeout(None)
         print("X", xxx)
         if xxx == "PRIV:":
             print("private")
@@ -485,24 +708,25 @@ def fuck_around(client, address):
                     client.send("errorv2".encode())
         elif xxx.startswith("CHANGE_USERNAME:"):
             _, username, password, new_username = xxx.split(":")
-            if check_username_exist(username):
-                pas = get_password(username)
-                if pas == password:
-                    replace_value(username, new_username, "username")
-                    client.send(b"success")
+            if not check_username_exist(new_username):
+                if check_username_exist(username):
+                    pas = get_password(username)
+                    if pas == password:
+                        replace_value(username, new_username, "username")
+                        replace_username_db(username, new_username)
+                        client.send(b"success")
+                    else:
+                        client.send(b"error")
                 else:
                     client.send(b"error")
             else:
                 client.send(b"error")
         elif xxx.startswith("CHANGE_PASSWORD:"):
             _, old, new, username = xxx.split(":")
-            if check_username_exist(username):
-                pas = get_password(username)
-                if pas == new:
-                    replace_value(get_password(username), hash_pwd(new), "password")
-                    client.send(b"success")
-                else:
-                    client.send(b"error")
+            if check_username_exist(username) and get_password(username) == old:
+                # replace_value(get_password(username), hash_pwd(new), "password")
+                change_password(username, new)
+                client.send(b"success")
             else:
                 client.send(b"error")
         elif xxx.startswith("DELETE_ALL:"):
@@ -588,7 +812,6 @@ def fuck_around(client, address):
                         df = df[df[fieldname] != group_name]
                         df.to_csv('group_db.csv', index=False)
                         client.send(b"success")
-                        # TODO: Send signal to everyone to delete group
                         members = []
                         for item in dataset:
                             if item["group"] == group_name:
@@ -613,7 +836,6 @@ def fuck_around(client, address):
                         )
                         dataframe.to_csv("group_db.csv", index=False)
                         client.send(b"success")
-                        # TODO: Send signal to everyone to rename group
                         members = []
                         for item in dataset:
                             if item["group"] == group_name:
@@ -627,26 +849,86 @@ def fuck_around(client, address):
                     client.send(b"error")
             else:
                 client.send(b"error")
+        elif xxx.startswith("CREATE_ASY_GROUP:"):
+            _, group_name, username, paswd = xxx.split(":")
+            if check_username_exist(username) and get_password(username) == paswd:
+                if check_group_name_exists(group_name):
+                    client.send(b"group_exists")
+                else:
+                    with open("group_db.csv", "a") as g_gile:
+                        g_gile.write(f"{group_name},{username}\n")
+                    with open(f"groups_asy/{group_name}.csv", "a") as file:
+                        file.write(base64.b64encode(get_public(get_id(username))).decode())
+                        file.write("\n")
+                    client.send(b"success")
+            else:
+                client.send(b"error")
+        elif xxx.startswith("JOIN_ASY_GROUP:"):
+            _, group_name, username, paswd = xxx.split(":")
+            if check_username_exist(username) and get_password(username) == paswd:
+                with open(f"groups_asy/{group_name}.csv", "a+") as file:
+                    s = base64.b64encode(get_public(get_id(username))).decode()
+                    if s not in file.read().split("\n"):
+                        file.write(s)
+                        file.write("\n")
+                with open(f"groups_asy/{group_name}.csv", "r") as ff:
+                    r = ff.read().split("\n")
+                for item in r:
+                    print("Sent: ", item)
+                    client.send(item.encode())
+                time.sleep(0.5)
+                print("a")
+                client.send(b"success")
 
-        else:
-            if xxx.startswith("ID:::::"):
-                _, nickname, group_id = xxx.split("|||")
-                nicknames.append(nickname)
+                nicknames_asy.append(username)
 
-                clients.append(client)
-                form.append({"client": client, "name": nickname})
+                clients_asy.append(client)
+                form_asy.append({"client": client, "name": username})
 
-                print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} {nickname} joined.")
+                print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} {username} joined with asy.")
 
                 members = []
-                for item in dataset:
-                    if item["group"] == group_id:
+                for item in dataset_asy:
+                    if item["group"] == group_name:
                         members.append(item["client"])
                 for person in members:
-                    person.send(f":NEW_JOIN::{nickname}")
+                    # person.settimeout(5)
+                    person.send(f":NEW_JOIN::{username}::{base64.b64encode(get_public(get_id(username))).decode()}".encode())
+                    # person.settimeout(None)
 
-                thread = threading.Thread(target=handle, args=(client, group_id,))
+                thread = threading.Thread(target=handle_asy, args=(client, group_name,))
                 thread.start()
+
+            else:
+                client.send(b"error")
+        elif xxx.startswith("ID:::::"):
+            _, nickname, group_id = xxx.split("|||")
+            nicknames.append(nickname)
+
+            clients.append(client)
+            form.append({"client": client, "name": nickname})
+
+            print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} {nickname} joined.")
+
+            print("this")
+
+            members = []
+            for item in dataset:
+                if item["group"] == group_id:
+                    members.append(item["client"])
+            for person in members:
+                print(person)
+
+                person.send(f":NEW_JOIN::{nickname}".encode())
+
+            print("hmm.")
+
+            thread2 = threading.Thread(target=handle, args=(client, group_id,))
+            thread2.start()
+            print("okay")
+        else:
+            print("Unknown command.")
+            client.close()
     except ConnectionResetError:
         pass
     except Exception as e:
