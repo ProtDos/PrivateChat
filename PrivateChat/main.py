@@ -4300,10 +4300,22 @@ class ChatApp(MDApp):
             print("Error21:", e)
 
     def on_start(self):
-        self.screenshot_dir = '/sdcard/Pictures/Screenshots'
+        try:
+            if platform == 'android':
+                self.screenshot_dir = '/sdcard/Pictures/Screenshots'
+            else:
+                self.screenshot_dir = os.path.join(os.path.expanduser('~'), 'Pictures', 'Screenshots')
+            self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
+            Clock.schedule_interval(self.check_screenshots, 1)
+        except:
+            print("v1 failed")
+            try:
+                self.screenshot_dir = "/storage/emulated/0/DCIM/Screenshots/"
+                self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
+                Clock.schedule_interval(self.check_screenshots, 1)
+            except:
+                print("v2 failed.")
 
-        self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
-        Clock.schedule_interval(self.check_screenshots, 1)
 
     def check_screenshots(self, dt):
         try:
@@ -4330,7 +4342,6 @@ class ChatApp(MDApp):
                     )
         except:
             print("asdasdasd")
-            pass
 
     def check_unauthorized_access(self, *args):
         try:
@@ -4656,14 +4667,18 @@ class ChatApp(MDApp):
                 else:
                     # with open("private_key.txt", "rb") as file:
                     #     self.private_key = rr.PrivateKey.load_pkcs1(file.read())
-                    with open("private_key.txt", "r") as file:
-                        a = file.read()
-                        dec_priv = Decrypt(message_=a, key=password).decrypt().encode()
-                        # print(dec_priv)
-                        if dec_priv is None:
-                            self.show_toaster("Private key couldn't be decrypted.")
-                            return
-                        self.private_key = rr.PrivateKey.load_pkcs1(dec_priv)
+                    if username != "Google":
+                        with open("private_key.txt", "r") as file:
+                            a = file.read()
+                            dec_priv = Decrypt(message_=a, key=password).decrypt().encode()
+                            # print(dec_priv)
+                            if dec_priv is None:
+                                self.show_toaster("Private key couldn't be decrypted.")
+                                return
+                            self.private_key = rr.PrivateKey.load_pkcs1(dec_priv)
+                    else:
+                        self.public_key = rr.PublicKey.load_pkcs1(b'-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAlinP8nQRq3UWBtimgucKjX8bO9xG9dBXPsTJy8VLek9e1GDzSvum\nujfD1EXEvtAJHOQWzkAfCI8X/NfwjHnZ6PVAeka8cZooR05q/nyeeJcqJNTR3WDH\nxNVe7FL1IsML//BtYibumbogDNVrzsN1YAcxtK4M60GgHUPBgZMoJCXuLiP/QQIC\nnOCKKdresNS7UYqrltr68xcBQLkBfbeJtlICOdLfYX31Krroi6PiRF3hVvEiTLXh\nNgVukTrkf7Afp+/C10mE5NClLfjrGFPZmbaAwrLCV6t5bWGWifG7NVUQtAZC8yjz\nV9jJljVLaXp4sQmGgE4ATvHqgvuAJQRyhQIDAQAB\n-----END RSA PUBLIC KEY-----\n')
+                        self.private_key = rr.PrivateKey.load_pkcs1(b'-----BEGIN RSA PRIVATE KEY-----\nMIIEqQIBAAKCAQEAlinP8nQRq3UWBtimgucKjX8bO9xG9dBXPsTJy8VLek9e1GDz\nSvumujfD1EXEvtAJHOQWzkAfCI8X/NfwjHnZ6PVAeka8cZooR05q/nyeeJcqJNTR\n3WDHxNVe7FL1IsML//BtYibumbogDNVrzsN1YAcxtK4M60GgHUPBgZMoJCXuLiP/\nQQICnOCKKdresNS7UYqrltr68xcBQLkBfbeJtlICOdLfYX31Krroi6PiRF3hVvEi\nTLXhNgVukTrkf7Afp+/C10mE5NClLfjrGFPZmbaAwrLCV6t5bWGWifG7NVUQtAZC\n8yjzV9jJljVLaXp4sQmGgE4ATvHqgvuAJQRyhQIDAQABAoIBACKRh5SKEdNFxgdX\ncqWp6G0AeNWD9TX7e0ow5T+qsKB8ixkbJIb7fbtawRMp6IwAukhTXcinTD2dK2mC\nkJbWKksNwoUjqZgBZApeTBU/vP+H1STbdWCgOfzfHdYLlvEks6t8vsGcssri5SPv\nMb1Mk8XCgjfU5ZZ26ekuVV0VJLoMAeTQT9GSQBPeLLI38YQsLvWWLBiGP+zbAC9E\nH7JhnLf6yZzcWUrt8F8uFclydM1Zl/Jzvtf2v7DXZBapr7goykgJt+dfOqG6L3mN\n7K7HIKPMdWT/j2TiS9bjEik7NQV/CkqltNE+SiXJqddDqHJZklHSSKERUgNoc+s1\nvKPS1XUCgYkAutyUZcFY/VROPZQHGGJ7DF13j1y3GajcfdM/W9dWNaTKD+JSu0NJ\n29txB/7zPT+JNtBZ/Jb2WzFtY8hmeZKSYZJAJPpOHBweBZLVnZdocg+WVbAOBjXu\nPpJm0G9lQY0NPgetJm7gxRAx7HtohGBAXkp/Q5sskzLeEOXhaRwg3hIcMPi9LaMY\nywJ5AM25MOwluNdqzVE2H7kyODIb3guXHT73qQ9bMM91CWVo3NCP4+eR9yYVtRgv\nQ8Nbu5K1pFYQEifk6O8Xl/O+h5x4lBUbOwN5yezQxYBs+mXhbrZR6HN+IuSLidzj\nCViQ+BmJwE9uXfl4h5fI8EU/yo99WoSJjaBH7wKBiGW/F9q0ReVi01t6T8a6UO/x\nsNlSDa0eIjktHpG+lgWNniy5+nxW7k+VlF1bOE0AXJGJL4Z3GNuc9Uhg5VOLOMOC\nJAU+eeuab8pvInu15rw8uoob2/cLxJczlmImVcc0q6I8Ac8sjp0e7WAr7kQuOL5e\n6B8Czmm0R/CBi5R1KXxh9hHATxobdbMCeQC9abZupyiyRqa2EGRTCrcNA/WErGUE\nFdk1x1uAl5zIHy24ZdOL4iwxh6kOlG4K0Eo7AT1G9FMTIkOJ6CpDBPktiyOk70Z9\no8PUZECER1KhPVfHTFD/DXMpBIUxuGRhhFC6isdjGxYxXNVTXnJDAEILrXoLL+8T\nVUcCgYgil44+MdRRYh63SEppvtkbGMJD93YDjp3ugoRi6u+GfXv/8RBb1QjI1zfO\n1bKVhcxu9PlFmcfSmzN+H48hQu+eLpJH930iqumVqPGw9UHR0JwZQhU9j/k665IS\nlIg1rSRgaX1KdpVsfx5Fv8qzCrL+aIjWV4u9RQPFBw1HEARCbS8EPCHVi3DL\n-----END RSA PRIVATE KEY-----\n')
                     self.username = username
                     self.password = password
                     self.super_dubba_key = password
