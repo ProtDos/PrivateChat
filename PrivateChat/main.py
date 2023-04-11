@@ -4316,7 +4316,6 @@ class ChatApp(MDApp):
             except:
                 print("v2 failed.")
 
-
     def check_screenshots(self, dt):
         try:
             current_screenshot_count = len(os.listdir(self.screenshot_dir))
