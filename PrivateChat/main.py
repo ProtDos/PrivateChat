@@ -54,7 +54,6 @@ from kivy.utils import platform
 
 from jnius import autoclass
 
-
 """
 - Encrypt Private Messaging
     - https://www.youtube.com/watch?v=U_Q1vqaJi34&t=1070s
@@ -433,21 +432,21 @@ MDScreen:
                         text_color: 1, 1, 1, 1
                         on_release:
                             app.change_password(text_input3.text)
-                
+
                 MDSwitch:
                     id: switch
                     pos_hint: {"center_x": .8, "center_y": .45}
                     width: dp(45) 
                     on_touch_down:
                         app.secure_check()
-                     
-                
+
+
                 MDLabel:
                     text: "Secure Mode?"
                     font_name: "MPoppins"
                     pos_hint: {"center_x": .7, "center_y": .45}
                     font_size: "14sp"
-                
+
                 Button:
                     text: "Delete Everything"
                     size_hint: .66, .065
@@ -1574,7 +1573,7 @@ MDScreen:
     name: "new_group_join"
     name_: name_
     switch: switch
-    
+
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -1618,18 +1617,18 @@ MDScreen:
                 pos_hint: {"center_x": .45, "center_y": 0}
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
-        
+
         MDSwitch:
             id: switch
             pos_hint: {"center_x": .8, "center_y": .45}
             width: dp(45)  
-        
+
         MDLabel:
             text: "Asymmetrical?"
             font_name: "MPoppins"
             pos_hint: {"center_x": .7, "center_y": .45}
             font_size: "14sp"
-                     
+
 
         Button:
             text: "Join"
@@ -2109,7 +2108,7 @@ MDScreen:
                 Line:
                     width: 1.2
                     rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
-        
+
 """
 chat_new_private = """
 MDScreen:
@@ -2339,7 +2338,7 @@ chat = """
 <Response>
     size_hint_y: None
     pos_hint: {"x": .02}
-    #height: self.texture_size[1]
+    # height: self.texture_size[1]
     padding: 12, 10
     canvas.before:
         Color:
@@ -2348,19 +2347,6 @@ chat = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 0
-        Label:
-            text: root.fro
-            font_size: 40
-            color: (0, 0, 1, 1)
-            halign: 'left'
-            size_hint_x: .22
-        MDLabel:
-            text: root.text
-            font_size: 50
-            halign: "center"
 <AddImage>
     size_hint_y: None
     pos_hint: {"x": -.3}
@@ -3186,7 +3172,7 @@ MDScreen:
 group_settings = """
 MDScreen:
     name: "group_settings"
-    
+
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -3255,7 +3241,7 @@ MDScreen:
                 Line:
                     width: 1.2
                     rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
-    
+
 """
 
 popup_update = """
@@ -3322,7 +3308,7 @@ MDScreen:
                 Line:
                     width: 1.2
                     rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
-        
+
 """
 popup_warning = """
 MDScreen:
@@ -3396,7 +3382,7 @@ MDScreen:
     slider: slider
     btn: btn
     llabel: llabel
-    
+
     MDFloatLayout:
         md_bg_color: 1, 1, 1, 1
         MDIconButton:
@@ -3408,7 +3394,7 @@ MDScreen:
             on_release:
                 root.manager.transition.direction = "right"
                 root.manager.current = "home"
-            
+
         MDLabel:
             text: "Choose mode"
             font_name: "BPoppins"
@@ -3422,7 +3408,7 @@ MDScreen:
             font_size: "18sp"
             pos_hint: {"center_x": .6, "center_y": .79}
             color: rgba(135, 133, 193, 255)
-        
+
         Slider:
             id: slider
             min: 25
@@ -3432,9 +3418,9 @@ MDScreen:
             pos_hint: {"center_x": .5, "center_y": .35}
             size_hint_x: 0.7
             opacity: 0
-            
+
             cursor_image: "abc.png"
-            
+
         Button:
             text: "Asymmetrical"
             size_hint: .66, .065
@@ -3451,7 +3437,7 @@ MDScreen:
                 Line:
                     width: 1.2
                     rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
-            
+
         Button:
             text: "Symmetrical"
             size_hint: .66, .065
@@ -3470,7 +3456,7 @@ MDScreen:
                 Line:
                     width: 1.2
                     rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
-        
+
         MDLabel:
             id: llabel
             text: "Choose key size:"
@@ -3479,7 +3465,7 @@ MDScreen:
             font_size: "18sp"
             color: rgba(135, 133, 193, 255)
             opacity: 0
-        
+
         Button:
             id: btn
             opacity: 0
@@ -3497,7 +3483,7 @@ MDScreen:
                 Line:
                     width: 1.2
                     rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
-        
+
 """
 
 chat_asy = """
@@ -3530,19 +3516,6 @@ chat_asy = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 0
-        Label:
-            text: root.fro
-            font_size: 40
-            color: (0, 0, 1, 1)
-            halign: 'left'
-            size_hint_x: .22
-        MDLabel:
-            text: root.text
-            font_size: 50
-            halign: "center"
 <AddImage>
     size_hint_y: None
     pos_hint: {"x": -.3}
@@ -3824,6 +3797,7 @@ if platform == "android":
     from android.storage import primary_external_storage_path
     from android.runnable import run_on_ui_thread
     from android import mActivity as mA
+    from android import Environment
 
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
                          Permission.CAMERA, Permission.INTERNET, Permission.INSTALL_PACKAGES])
@@ -3851,9 +3825,8 @@ class Command(MDLabel):
     font_size = 50
 
 
-class Response(BoxLayout):
+class Response(MDLabel):
     text = StringProperty()
-    fro = StringProperty()
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
@@ -4292,8 +4265,8 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(chat_asy))
             self.screen_manager.add_widget(Builder.load_string(group_create_asy))
 
-            # Clock.schedule_once(self.check_for_updates, 0)
-            # Clock.schedule_once(self.check_unauthorized_access, 0)
+            Clock.schedule_once(self.check_for_updates, 0)
+            Clock.schedule_once(self.check_unauthorized_access, 0)
 
             return self.screen_manager
         except Exception as e:
@@ -4302,45 +4275,39 @@ class ChatApp(MDApp):
     def on_start(self):
         try:
             if platform == 'android':
-                self.screenshot_dir = '/sdcard/Pictures/Screenshots'
+                self.screenshot_dir = os.path.join(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), 'Screenshots')
             else:
                 self.screenshot_dir = os.path.join(os.path.expanduser('~'), 'Pictures', 'Screenshots')
-            self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
-            Clock.schedule_interval(self.check_screenshots, 1)
         except:
             print("v1 failed")
-            try:
-                self.screenshot_dir = "/storage/emulated/0/DCIM/Screenshots/"
-                self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
-                Clock.schedule_interval(self.check_screenshots, 1)
-            except:
-                print("v2 failed.")
+            self.screenshot_dir = '/sdcard/Pictures/Screenshots'
+
+        self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
+        Clock.schedule_interval(self.check_screenshots, 1)
 
     def check_screenshots(self, dt):
-        try:
-            current_screenshot_count = len(os.listdir(self.screenshot_dir))
-            if current_screenshot_count > self.previous_screenshot_count:
-                new_screenshot_count = current_screenshot_count - self.previous_screenshot_count
-                print(new_screenshot_count)
-                self.previous_screenshot_count = current_screenshot_count
-                if self.screen_manager.current == "chat":
-                    self.addscreenshot("You", mode="chat")
-                    self.sock.send(f":SCREENSHOT::{self.username}".encode())
-                elif self.screen_manager.current == "chat_sec":
-                    self.addscreenshot("You", mode="chat_sec")
-                    self.sock.send(f":SCREENSHOT::{self.username}::{current_chat_with}".encode())
-                elif self.screen_manager.current == "chat_asy":
-                    self.addscreenshot("You", mode="chat_asy")
-                    self.sock.send(f":SCREENSHOT::{self.username}".encode())
-                else:
-                    notification.notify(
-                        title='Screenshot detected.',
-                        message=f'All screenshots will be monitored.',
-                        app_name='Encochat',
-                        timeout=5,
-                    )
-        except:
-            print("asdasdasd")
+        current_screenshot_count = len(os.listdir(self.screenshot_dir))
+        if current_screenshot_count > self.previous_screenshot_count:
+            new_screenshot_count = current_screenshot_count - self.previous_screenshot_count
+            print(new_screenshot_count)
+            self.previous_screenshot_count = current_screenshot_count
+            if self.screen_manager.current == "chat":
+                self.addscreenshot("You", mode="chat")
+                self.sock.send(f":SCREENSHOT::{self.username}".encode())
+            elif self.screen_manager.current == "chat_sec":
+                self.addscreenshot("You", mode="chat_sec")
+                self.sock.send(f":SCREENSHOT::{self.username}::{current_chat_with}".encode())
+            elif self.screen_manager.current == "chat_asy":
+                self.addscreenshot("You", mode="chat_asy")
+                self.sock.send(f":SCREENSHOT::{self.username}".encode())
+            else:
+                notification.notify(
+                    title='Screenshot detected.',
+                    message=f'All screenshots will be monitored.',
+                    app_name='Encochat',
+                    timeout=5,
+                )
 
     def check_unauthorized_access(self, *args):
         try:
@@ -4666,18 +4633,14 @@ class ChatApp(MDApp):
                 else:
                     # with open("private_key.txt", "rb") as file:
                     #     self.private_key = rr.PrivateKey.load_pkcs1(file.read())
-                    if username != "Google":
-                        with open("private_key.txt", "r") as file:
-                            a = file.read()
-                            dec_priv = Decrypt(message_=a, key=password).decrypt().encode()
-                            # print(dec_priv)
-                            if dec_priv is None:
-                                self.show_toaster("Private key couldn't be decrypted.")
-                                return
-                            self.private_key = rr.PrivateKey.load_pkcs1(dec_priv)
-                    else:
-                        self.public_key = rr.PublicKey.load_pkcs1(b'-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAlinP8nQRq3UWBtimgucKjX8bO9xG9dBXPsTJy8VLek9e1GDzSvum\nujfD1EXEvtAJHOQWzkAfCI8X/NfwjHnZ6PVAeka8cZooR05q/nyeeJcqJNTR3WDH\nxNVe7FL1IsML//BtYibumbogDNVrzsN1YAcxtK4M60GgHUPBgZMoJCXuLiP/QQIC\nnOCKKdresNS7UYqrltr68xcBQLkBfbeJtlICOdLfYX31Krroi6PiRF3hVvEiTLXh\nNgVukTrkf7Afp+/C10mE5NClLfjrGFPZmbaAwrLCV6t5bWGWifG7NVUQtAZC8yjz\nV9jJljVLaXp4sQmGgE4ATvHqgvuAJQRyhQIDAQAB\n-----END RSA PUBLIC KEY-----\n')
-                        self.private_key = rr.PrivateKey.load_pkcs1(b'-----BEGIN RSA PRIVATE KEY-----\nMIIEqQIBAAKCAQEAlinP8nQRq3UWBtimgucKjX8bO9xG9dBXPsTJy8VLek9e1GDz\nSvumujfD1EXEvtAJHOQWzkAfCI8X/NfwjHnZ6PVAeka8cZooR05q/nyeeJcqJNTR\n3WDHxNVe7FL1IsML//BtYibumbogDNVrzsN1YAcxtK4M60GgHUPBgZMoJCXuLiP/\nQQICnOCKKdresNS7UYqrltr68xcBQLkBfbeJtlICOdLfYX31Krroi6PiRF3hVvEi\nTLXhNgVukTrkf7Afp+/C10mE5NClLfjrGFPZmbaAwrLCV6t5bWGWifG7NVUQtAZC\n8yjzV9jJljVLaXp4sQmGgE4ATvHqgvuAJQRyhQIDAQABAoIBACKRh5SKEdNFxgdX\ncqWp6G0AeNWD9TX7e0ow5T+qsKB8ixkbJIb7fbtawRMp6IwAukhTXcinTD2dK2mC\nkJbWKksNwoUjqZgBZApeTBU/vP+H1STbdWCgOfzfHdYLlvEks6t8vsGcssri5SPv\nMb1Mk8XCgjfU5ZZ26ekuVV0VJLoMAeTQT9GSQBPeLLI38YQsLvWWLBiGP+zbAC9E\nH7JhnLf6yZzcWUrt8F8uFclydM1Zl/Jzvtf2v7DXZBapr7goykgJt+dfOqG6L3mN\n7K7HIKPMdWT/j2TiS9bjEik7NQV/CkqltNE+SiXJqddDqHJZklHSSKERUgNoc+s1\nvKPS1XUCgYkAutyUZcFY/VROPZQHGGJ7DF13j1y3GajcfdM/W9dWNaTKD+JSu0NJ\n29txB/7zPT+JNtBZ/Jb2WzFtY8hmeZKSYZJAJPpOHBweBZLVnZdocg+WVbAOBjXu\nPpJm0G9lQY0NPgetJm7gxRAx7HtohGBAXkp/Q5sskzLeEOXhaRwg3hIcMPi9LaMY\nywJ5AM25MOwluNdqzVE2H7kyODIb3guXHT73qQ9bMM91CWVo3NCP4+eR9yYVtRgv\nQ8Nbu5K1pFYQEifk6O8Xl/O+h5x4lBUbOwN5yezQxYBs+mXhbrZR6HN+IuSLidzj\nCViQ+BmJwE9uXfl4h5fI8EU/yo99WoSJjaBH7wKBiGW/F9q0ReVi01t6T8a6UO/x\nsNlSDa0eIjktHpG+lgWNniy5+nxW7k+VlF1bOE0AXJGJL4Z3GNuc9Uhg5VOLOMOC\nJAU+eeuab8pvInu15rw8uoob2/cLxJczlmImVcc0q6I8Ac8sjp0e7WAr7kQuOL5e\n6B8Czmm0R/CBi5R1KXxh9hHATxobdbMCeQC9abZupyiyRqa2EGRTCrcNA/WErGUE\nFdk1x1uAl5zIHy24ZdOL4iwxh6kOlG4K0Eo7AT1G9FMTIkOJ6CpDBPktiyOk70Z9\no8PUZECER1KhPVfHTFD/DXMpBIUxuGRhhFC6isdjGxYxXNVTXnJDAEILrXoLL+8T\nVUcCgYgil44+MdRRYh63SEppvtkbGMJD93YDjp3ugoRi6u+GfXv/8RBb1QjI1zfO\n1bKVhcxu9PlFmcfSmzN+H48hQu+eLpJH930iqumVqPGw9UHR0JwZQhU9j/k665IS\nlIg1rSRgaX1KdpVsfx5Fv8qzCrL+aIjWV4u9RQPFBw1HEARCbS8EPCHVi3DL\n-----END RSA PRIVATE KEY-----\n')
+                    with open("private_key.txt", "r") as file:
+                        a = file.read()
+                        dec_priv = Decrypt(message_=a, key=password).decrypt().encode()
+                        # print(dec_priv)
+                        if dec_priv is None:
+                            self.show_toaster("Private key couldn't be decrypted.")
+                            return
+                        self.private_key = rr.PrivateKey.load_pkcs1(dec_priv)
                     self.username = username
                     self.password = password
                     self.super_dubba_key = password
@@ -5290,7 +5253,7 @@ class ChatApp(MDApp):
                     _, new = username.split(":::")
                     self.group_name = new
                     self.screen_manager.get_screen("chat_asy").bot_name.text = new
-                elif username.startswith(":NEW_JOIN::"):
+                elif ":NEW_JOIN::" in username:
                     _, name, public = username.split("::")
                     dec = base64.b64decode(public).decode()
                     if dec not in self.current_public_keys_group:
@@ -5312,6 +5275,7 @@ class ChatApp(MDApp):
                     try:
                         msg = rsa.decrypt(message, self.private_key).decode()
                         print("Decrypted:", msg)
+                        self.add3(msg, "")
                     except Exception as e:
                         print(e)
                         pass
@@ -5329,14 +5293,17 @@ class ChatApp(MDApp):
     def send_message_asy(self, message):
         try:
             for item in self.current_public_keys_group:
-                public = rr.PublicKey.load_pkcs1(base64.b64decode(item))
-                print("Loaded public key: ", public)
-                print("Encrypting message.")
-                enc = rsa.encrypt(message.encode(), public)
-                print("Sending username.")
-                self.sock.send(self.username.encode())
-                print("Sending message.")
-                self.sock.send(enc)
+                try:
+                    public = rr.PublicKey.load_pkcs1(base64.b64decode(item))
+                    print("Loaded public key: ", public)
+                    print("Encrypting message.")
+                    enc = rsa.encrypt(message.encode(), public)
+                    print("Sending username.")
+                    self.sock.send(self.username.encode())
+                    print("Sending message.")
+                    self.sock.send(enc)
+                except:
+                    pass
             global size, halign, value
             if message != "":
                 value = message
@@ -5426,7 +5393,8 @@ class ChatApp(MDApp):
         print(group_key)
         try:
             # self.connect()
-            self.sock.send('{}: {}'.format(self.username, Encrypt(message_=message, key=group_key).encrypt().decode()).encode())
+            self.sock.send(
+                '{}: {}'.format(self.username, Encrypt(message_=message, key=group_key).encrypt().decode()).encode())
             print("sent")
             global size, halign, value
             if message != "":
@@ -5562,7 +5530,7 @@ class ChatApp(MDApp):
                                 self.add_img(img_src=kk)
 
                             else:
-                                self.add2(message, sender)
+                                self.add2(message, "")
                                 print("Message:", message)
                         else:
                             self.screen_manager.current_screen = "home"
@@ -5629,6 +5597,39 @@ class ChatApp(MDApp):
                     size = .7
                     halign = "left"
             self.screen_manager.get_screen("chat").chat_list.add_widget(
+                Response(text=message, size_hint_x=size + .3, halign=halign))
+        except Exception as e:
+            print("Error14:", e)
+            pass
+
+    @mainthread
+    def add3(self, message, _):
+        try:
+            global size, halign, value
+            if message != "":
+                value = message
+                if len(value) < 6:
+                    size = .22
+                    halign = "center"
+                elif len(value) < 6:
+                    size = .22
+                    halign = "center"
+                elif len(value) < 11:
+                    size = .32
+                    halign = "center"
+                elif len(value) < 16:
+                    size = .45
+                    halign = "center"
+                elif len(value) < 21:
+                    size = .58
+                    halign = "center"
+                elif len(value) < 26:
+                    size = .71
+                    halign = "center"
+                else:
+                    size = .7
+                    halign = "left"
+            self.screen_manager.get_screen("chat_asy").chat_list.add_widget(
                 Response(text=message, size_hint_x=size + .3, halign=halign))
         except Exception as e:
             print("Error14:", e)
@@ -6245,7 +6246,8 @@ class ChatApp(MDApp):
     def rename_group(self, new_group_name):
         # self.group_name
         self.connect()
-        self.sock.send(f"RENAME_GROUP:{self.group_name}:{new_group_name}:{self.username}:{hash_pwd(self.password)}".encode())
+        self.sock.send(
+            f"RENAME_GROUP:{self.group_name}:{new_group_name}:{self.username}:{hash_pwd(self.password)}".encode())
         out = self.sock.recv(1024)
         print(out)
         if out == b"success":
@@ -6292,7 +6294,6 @@ class ChatApp(MDApp):
 
     def disable_flag_secure(self):
         pass
-
 
 
 if __name__ == "__main__":
