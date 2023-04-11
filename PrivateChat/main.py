@@ -3824,13 +3824,12 @@ if platform == "android":
     from android.storage import primary_external_storage_path
     from android.runnable import run_on_ui_thread
     from android import mActivity as mA
-    from android import Environment
 
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
                          Permission.CAMERA, Permission.INTERNET, Permission.INSTALL_PACKAGES])
 else:
     Window.size = (310, 580)
-    HOST, PORT = "localhost", 5000
+    # HOST, PORT = "localhost", 5000
 
 
 def connect_again():
@@ -4293,49 +4292,45 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(chat_asy))
             self.screen_manager.add_widget(Builder.load_string(group_create_asy))
 
-            Clock.schedule_once(self.check_for_updates, 0)
-            Clock.schedule_once(self.check_unauthorized_access, 0)
+            # Clock.schedule_once(self.check_for_updates, 0)
+            # Clock.schedule_once(self.check_unauthorized_access, 0)
 
             return self.screen_manager
         except Exception as e:
             print("Error21:", e)
 
     def on_start(self):
-        try:
-            if platform == 'android':
-                self.screenshot_dir = os.path.join(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), 'Screenshots')
-            else:
-                self.screenshot_dir = os.path.join(os.path.expanduser('~'), 'Pictures', 'Screenshots')
-        except:
-            print("v1 failed")
-            self.screenshot_dir = '/sdcard/Pictures/Screenshots'
+        self.screenshot_dir = '/sdcard/Pictures/Screenshots'
 
         self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
         Clock.schedule_interval(self.check_screenshots, 1)
 
     def check_screenshots(self, dt):
-        current_screenshot_count = len(os.listdir(self.screenshot_dir))
-        if current_screenshot_count > self.previous_screenshot_count:
-            new_screenshot_count = current_screenshot_count - self.previous_screenshot_count
-            print(new_screenshot_count)
-            self.previous_screenshot_count = current_screenshot_count
-            if self.screen_manager.current == "chat":
-                self.addscreenshot("You", mode="chat")
-                self.sock.send(f":SCREENSHOT::{self.username}".encode())
-            elif self.screen_manager.current == "chat_sec":
-                self.addscreenshot("You", mode="chat_sec")
-                self.sock.send(f":SCREENSHOT::{self.username}::{current_chat_with}".encode())
-            elif self.screen_manager.current == "chat_asy":
-                self.addscreenshot("You", mode="chat_asy")
-                self.sock.send(f":SCREENSHOT::{self.username}".encode())
-            else:
-                notification.notify(
-                    title='Screenshot detected.',
-                    message=f'All screenshots will be monitored.',
-                    app_name='Encochat',
-                    timeout=5,
-                )
+        try:
+            current_screenshot_count = len(os.listdir(self.screenshot_dir))
+            if current_screenshot_count > self.previous_screenshot_count:
+                new_screenshot_count = current_screenshot_count - self.previous_screenshot_count
+                print(new_screenshot_count)
+                self.previous_screenshot_count = current_screenshot_count
+                if self.screen_manager.current == "chat":
+                    self.addscreenshot("You", mode="chat")
+                    self.sock.send(f":SCREENSHOT::{self.username}".encode())
+                elif self.screen_manager.current == "chat_sec":
+                    self.addscreenshot("You", mode="chat_sec")
+                    self.sock.send(f":SCREENSHOT::{self.username}::{current_chat_with}".encode())
+                elif self.screen_manager.current == "chat_asy":
+                    self.addscreenshot("You", mode="chat_asy")
+                    self.sock.send(f":SCREENSHOT::{self.username}".encode())
+                else:
+                    notification.notify(
+                        title='Screenshot detected.',
+                        message=f'All screenshots will be monitored.',
+                        app_name='Encochat',
+                        timeout=5,
+                    )
+        except:
+            print("asdasdasd")
+            pass
 
     def check_unauthorized_access(self, *args):
         try:
