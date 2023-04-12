@@ -8,7 +8,6 @@ import pandas as pd
 import hashlib
 import string
 
-
 host = "localhost"
 port = 5000
 
@@ -206,8 +205,9 @@ def broadcast_asy(message, client, username):
                     members.append(item["client"])
             # print(message)
             for person in members:
-                # if person != client:
+                if person != client:
                     person.send(username)
+                    time.sleep(1)
                     print("asdadasd")
                     person.send(message)
 
@@ -474,9 +474,9 @@ def handle_asy(client, g_id):
                     pp = True
                     filename = client.recv(1024).decode()
                     sender = client.recv(1024).decode()
-    
+
                     al = []
-    
+
                     while True:
                         more_data = client.recv(1024).decode()
                         if more_data.endswith(":"):
@@ -489,13 +489,13 @@ def handle_asy(client, g_id):
                     complete_data = "".join(al)
                     print("Data received.")
                     print(complete_data)
-    
+
                     broadcast_file(name=filename, client=client, data=complete_data, sender=sender)
                 elif message.decode() == "IMAGE:::::":
                     pp = True
                     filename = client.recv(1024)
                     sender = client.recv(1024)
-    
+
                     print("okay")
                     members = []
                     group_id = None
@@ -511,9 +511,9 @@ def handle_asy(client, g_id):
                             if item["group"] == group_id:
                                 members.append(item["client"])
                         print("sending file")
-    
+
                     print(members)
-    
+
                     for person in members:
                         if person != client:
                             person.send(b"IMAGE_INCOMING")
@@ -521,7 +521,7 @@ def handle_asy(client, g_id):
                             print("sent first")
                             person.send(filename + b"<<MARKER>>" + sender)
                             time.sleep(.5)
-    
+
                     while True:
                         data = client.recv(1024)
                         print("data:", data)
@@ -542,7 +542,7 @@ def handle_asy(client, g_id):
                                     time.sleep(.5)
                                     person.sendall(b":ENDED:")
                             break
-    
+
                         for person in members:
                             if person != client:
                                 person.sendall(data)
@@ -564,7 +564,8 @@ def handle_asy(client, g_id):
                             if item2["group"] == g_id:
                                 members.append(item2["client"])
                         for person in members:
-                            person.send(f":NEW_LEAVE::{item['name']}::{base64.b64encode(get_public(get_id(item['name']))).decode()}".encode())
+                            person.send(
+                                f":NEW_LEAVE::{item['name']}::{base64.b64encode(get_public(get_id(item['name']))).decode()}".encode())
                         s = True
                 if not s:
                     print(f"{datetime.now().strftime('[%d-%m-%Y %H:%M:%S]')} Unknown client disconnected.")
@@ -776,6 +777,13 @@ def fuck_around(client, address):
             else:
                 print("nah")
                 client.send(b"error")
+        elif xxx.startswith("GET_ID:"):
+            username = xxx.split(":")[1]
+            aa = get_id(username)
+            if aa:
+                client.send(aa.encode())
+            else:
+                client.send(b"error")
         elif xxx.startswith("USER_EXISTS:"):
             u = xxx.split(":")[1]
             if check_username_exist(u):
@@ -893,7 +901,12 @@ def fuck_around(client, address):
                         members.append(item["client"])
                 for person in members:
                     # person.settimeout(5)
-                    person.send(f":NEW_JOIN::{username}::{base64.b64encode(get_public(get_id(username))).decode()}".encode())
+                    person.send(
+                        f":NEW_JOIN::{username}::{base64.b64encode(get_public(get_id(username))).decode()}".encode()
+                    )
+                    client.send(
+                        f":NEW_JOIN2::{base64.b64encode(get_public(get_id(username))).decode()}".encode()
+                    )
                     # person.settimeout(None)
 
                 thread = threading.Thread(target=handle_asy, args=(client, group_name,))
