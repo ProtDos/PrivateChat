@@ -2348,19 +2348,19 @@ chat = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 0
-        Label:
-            text: root.fro
-            font_size: 40
-            color: (0, 0, 1, 1)
-            halign: 'left'
-            size_hint_x: .22
-        MDLabel:
-            text: root.text
-            font_size: 50
-            halign: "center"
+    # BoxLayout:
+    #     orientation: 'vertical'
+    #     padding: 0
+    #     Label:
+    #         text: root.fro
+    #         font_size: 40
+    #         color: (0, 0, 1, 1)
+    #         halign: 'left'
+    #         size_hint_x: .22
+    #     MDLabel:
+    #       text: root.text
+    #       font_size: 50
+    #       halign: "center"
 <AddImage>
     size_hint_y: None
     pos_hint: {"x": -.3}
@@ -3530,19 +3530,19 @@ chat_asy = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 0
-        Label:
-            text: root.fro
-            font_size: 40
-            color: (0, 0, 1, 1)
-            halign: 'left'
-            size_hint_x: .22
-        MDLabel:
-            text: root.text
-            font_size: 50
-            halign: "center"
+    # BoxLayout:
+    #     orientation: 'vertical'
+    #     padding: 0
+    #     Label:
+    #         text: root.fro
+    #         font_size: 40
+    #         color: (0, 0, 1, 1)
+    #         halign: 'left'
+    #         size_hint_x: .22
+    #     MDLabel:
+    #         text: root.text
+    #         font_size: 50
+    #         halign: "center"
 <AddImage>
     size_hint_y: None
     pos_hint: {"x": -.3}
@@ -3851,9 +3851,9 @@ class Command(MDLabel):
     font_size = 50
 
 
-class Response(BoxLayout):
+class Response(MDLabel):
     text = StringProperty()
-    fro = StringProperty()
+    # fro = StringProperty()
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
