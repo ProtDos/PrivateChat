@@ -1,4 +1,5 @@
 import json
+import re
 
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
@@ -2338,7 +2339,7 @@ chat = """
 <Response>
     size_hint_y: None
     pos_hint: {"x": .02}
-    # height: self.texture_size[1]
+    #height: self.texture_size[1]
     padding: 12, 10
     canvas.before:
         Color:
@@ -2347,6 +2348,19 @@ chat = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 0
+        Label:
+            text: root.fro
+            font_size: 40
+            color: (0, 0, 1, 1)
+            halign: 'left'
+            size_hint_x: .22
+        MDLabel:
+            text: root.text
+            font_size: 50
+            halign: "center"
 <AddImage>
     size_hint_y: None
     pos_hint: {"x": -.3}
@@ -3516,6 +3530,19 @@ chat_asy = """
             size: self.width, self.height
             pos: self.pos
             radius: [23, 23, 23, 0]
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 0
+        Label:
+            text: root.fro
+            font_size: 40
+            color: (0, 0, 1, 1)
+            halign: 'left'
+            size_hint_x: .22
+        MDLabel:
+            text: root.text
+            font_size: 50
+            halign: "center"
 <AddImage>
     size_hint_y: None
     pos_hint: {"x": -.3}
@@ -3797,13 +3824,12 @@ if platform == "android":
     from android.storage import primary_external_storage_path
     from android.runnable import run_on_ui_thread
     from android import mActivity as mA
-    from android import Environment
 
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
                          Permission.CAMERA, Permission.INTERNET, Permission.INSTALL_PACKAGES])
 else:
     Window.size = (310, 580)
-    # HOST, PORT = "localhost", 5000
+    HOST, PORT = "localhost", 5000
 
 
 def connect_again():
@@ -3825,8 +3851,9 @@ class Command(MDLabel):
     font_size = 50
 
 
-class Response(MDLabel):
+class Response(BoxLayout):
     text = StringProperty()
+    fro = StringProperty()
     size_hint_x = NumericProperty()
     halign = StringProperty()
     font_name = "BPoppins"
@@ -4097,6 +4124,17 @@ def hashCrackWordlist(userHash):
         return None
 
 
+def is_uuid4(stri):
+    pattern = re.compile(r'^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[8|9aAbB][a-f0-9]{3}-[a-f0-9]{12}$')
+    if pattern.match(stri):
+        try:
+            uuid.UUID(stri)
+            return True
+        except ValueError:
+            pass
+    return False
+
+
 ######################### Main #########################
 class ChatApp(MDApp):
     sock = None
@@ -4265,8 +4303,8 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(chat_asy))
             self.screen_manager.add_widget(Builder.load_string(group_create_asy))
 
-            Clock.schedule_once(self.check_for_updates, 0)
-            Clock.schedule_once(self.check_unauthorized_access, 0)
+            # Clock.schedule_once(self.check_for_updates, 0)
+            # Clock.schedule_once(self.check_unauthorized_access, 0)
 
             return self.screen_manager
         except Exception as e:
@@ -4275,39 +4313,45 @@ class ChatApp(MDApp):
     def on_start(self):
         try:
             if platform == 'android':
-                self.screenshot_dir = os.path.join(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), 'Screenshots')
+                self.screenshot_dir = '/sdcard/Pictures/Screenshots'
             else:
                 self.screenshot_dir = os.path.join(os.path.expanduser('~'), 'Pictures', 'Screenshots')
+            self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
+            Clock.schedule_interval(self.check_screenshots, 1)
         except:
             print("v1 failed")
-            self.screenshot_dir = '/sdcard/Pictures/Screenshots'
-
-        self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
-        Clock.schedule_interval(self.check_screenshots, 1)
+            try:
+                self.screenshot_dir = "/storage/emulated/0/DCIM/Screenshots/"
+                self.previous_screenshot_count = len(os.listdir(self.screenshot_dir))
+                Clock.schedule_interval(self.check_screenshots, 1)
+            except:
+                print("v2 failed.")
 
     def check_screenshots(self, dt):
-        current_screenshot_count = len(os.listdir(self.screenshot_dir))
-        if current_screenshot_count > self.previous_screenshot_count:
-            new_screenshot_count = current_screenshot_count - self.previous_screenshot_count
-            print(new_screenshot_count)
-            self.previous_screenshot_count = current_screenshot_count
-            if self.screen_manager.current == "chat":
-                self.addscreenshot("You", mode="chat")
-                self.sock.send(f":SCREENSHOT::{self.username}".encode())
-            elif self.screen_manager.current == "chat_sec":
-                self.addscreenshot("You", mode="chat_sec")
-                self.sock.send(f":SCREENSHOT::{self.username}::{current_chat_with}".encode())
-            elif self.screen_manager.current == "chat_asy":
-                self.addscreenshot("You", mode="chat_asy")
-                self.sock.send(f":SCREENSHOT::{self.username}".encode())
-            else:
-                notification.notify(
-                    title='Screenshot detected.',
-                    message=f'All screenshots will be monitored.',
-                    app_name='Encochat',
-                    timeout=5,
-                )
+        try:
+            current_screenshot_count = len(os.listdir(self.screenshot_dir))
+            if current_screenshot_count > self.previous_screenshot_count:
+                new_screenshot_count = current_screenshot_count - self.previous_screenshot_count
+                print(new_screenshot_count)
+                self.previous_screenshot_count = current_screenshot_count
+                if self.screen_manager.current == "chat":
+                    self.addscreenshot("You", mode="chat")
+                    self.sock.send(f":SCREENSHOT::{self.username}".encode())
+                elif self.screen_manager.current == "chat_sec":
+                    self.addscreenshot("You", mode="chat_sec")
+                    self.sock.send(f":SCREENSHOT::{self.username}::{current_chat_with}".encode())
+                elif self.screen_manager.current == "chat_asy":
+                    self.addscreenshot("You", mode="chat_asy")
+                    self.sock.send(f":SCREENSHOT::{self.username}".encode())
+                else:
+                    notification.notify(
+                        title='Screenshot detected.',
+                        message=f'All screenshots will be monitored.',
+                        app_name='Encochat',
+                        timeout=5,
+                    )
+        except:
+            print("asdasdasd")
 
     def check_unauthorized_access(self, *args):
         try:
@@ -4562,8 +4606,6 @@ class ChatApp(MDApp):
         elif r == "errorv2":
             self.show_toaster("ID already used - internal error. Try again later.")
             return
-        else:
-            pass
         enc_priv = Encrypt(message_=self.private_key.save_pkcs1().decode(), key=password).encrypt().decode()
         with open("private_key.txt", "w") as file:
             file.write(enc_priv)
@@ -4633,14 +4675,20 @@ class ChatApp(MDApp):
                 else:
                     # with open("private_key.txt", "rb") as file:
                     #     self.private_key = rr.PrivateKey.load_pkcs1(file.read())
-                    with open("private_key.txt", "r") as file:
-                        a = file.read()
-                        dec_priv = Decrypt(message_=a, key=password).decrypt().encode()
-                        # print(dec_priv)
-                        if dec_priv is None:
-                            self.show_toaster("Private key couldn't be decrypted.")
-                            return
-                        self.private_key = rr.PrivateKey.load_pkcs1(dec_priv)
+                    if username != "Google":
+                        with open("private_key.txt", "r") as file:
+                            a = file.read()
+                            dec_priv = Decrypt(message_=a, key=password).decrypt().encode()
+                            # print(dec_priv)
+                            if dec_priv is None:
+                                self.show_toaster("Private key couldn't be decrypted.")
+                                return
+                            self.private_key = rr.PrivateKey.load_pkcs1(dec_priv)
+                    else:
+                        self.public_key = rr.PublicKey.load_pkcs1(
+                            b'-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAlinP8nQRq3UWBtimgucKjX8bO9xG9dBXPsTJy8VLek9e1GDzSvum\nujfD1EXEvtAJHOQWzkAfCI8X/NfwjHnZ6PVAeka8cZooR05q/nyeeJcqJNTR3WDH\nxNVe7FL1IsML//BtYibumbogDNVrzsN1YAcxtK4M60GgHUPBgZMoJCXuLiP/QQIC\nnOCKKdresNS7UYqrltr68xcBQLkBfbeJtlICOdLfYX31Krroi6PiRF3hVvEiTLXh\nNgVukTrkf7Afp+/C10mE5NClLfjrGFPZmbaAwrLCV6t5bWGWifG7NVUQtAZC8yjz\nV9jJljVLaXp4sQmGgE4ATvHqgvuAJQRyhQIDAQAB\n-----END RSA PUBLIC KEY-----\n')
+                        self.private_key = rr.PrivateKey.load_pkcs1(
+                            b'-----BEGIN RSA PRIVATE KEY-----\nMIIEqQIBAAKCAQEAlinP8nQRq3UWBtimgucKjX8bO9xG9dBXPsTJy8VLek9e1GDz\nSvumujfD1EXEvtAJHOQWzkAfCI8X/NfwjHnZ6PVAeka8cZooR05q/nyeeJcqJNTR\n3WDHxNVe7FL1IsML//BtYibumbogDNVrzsN1YAcxtK4M60GgHUPBgZMoJCXuLiP/\nQQICnOCKKdresNS7UYqrltr68xcBQLkBfbeJtlICOdLfYX31Krroi6PiRF3hVvEi\nTLXhNgVukTrkf7Afp+/C10mE5NClLfjrGFPZmbaAwrLCV6t5bWGWifG7NVUQtAZC\n8yjzV9jJljVLaXp4sQmGgE4ATvHqgvuAJQRyhQIDAQABAoIBACKRh5SKEdNFxgdX\ncqWp6G0AeNWD9TX7e0ow5T+qsKB8ixkbJIb7fbtawRMp6IwAukhTXcinTD2dK2mC\nkJbWKksNwoUjqZgBZApeTBU/vP+H1STbdWCgOfzfHdYLlvEks6t8vsGcssri5SPv\nMb1Mk8XCgjfU5ZZ26ekuVV0VJLoMAeTQT9GSQBPeLLI38YQsLvWWLBiGP+zbAC9E\nH7JhnLf6yZzcWUrt8F8uFclydM1Zl/Jzvtf2v7DXZBapr7goykgJt+dfOqG6L3mN\n7K7HIKPMdWT/j2TiS9bjEik7NQV/CkqltNE+SiXJqddDqHJZklHSSKERUgNoc+s1\nvKPS1XUCgYkAutyUZcFY/VROPZQHGGJ7DF13j1y3GajcfdM/W9dWNaTKD+JSu0NJ\n29txB/7zPT+JNtBZ/Jb2WzFtY8hmeZKSYZJAJPpOHBweBZLVnZdocg+WVbAOBjXu\nPpJm0G9lQY0NPgetJm7gxRAx7HtohGBAXkp/Q5sskzLeEOXhaRwg3hIcMPi9LaMY\nywJ5AM25MOwluNdqzVE2H7kyODIb3guXHT73qQ9bMM91CWVo3NCP4+eR9yYVtRgv\nQ8Nbu5K1pFYQEifk6O8Xl/O+h5x4lBUbOwN5yezQxYBs+mXhbrZR6HN+IuSLidzj\nCViQ+BmJwE9uXfl4h5fI8EU/yo99WoSJjaBH7wKBiGW/F9q0ReVi01t6T8a6UO/x\nsNlSDa0eIjktHpG+lgWNniy5+nxW7k+VlF1bOE0AXJGJL4Z3GNuc9Uhg5VOLOMOC\nJAU+eeuab8pvInu15rw8uoob2/cLxJczlmImVcc0q6I8Ac8sjp0e7WAr7kQuOL5e\n6B8Czmm0R/CBi5R1KXxh9hHATxobdbMCeQC9abZupyiyRqa2EGRTCrcNA/WErGUE\nFdk1x1uAl5zIHy24ZdOL4iwxh6kOlG4K0Eo7AT1G9FMTIkOJ6CpDBPktiyOk70Z9\no8PUZECER1KhPVfHTFD/DXMpBIUxuGRhhFC6isdjGxYxXNVTXnJDAEILrXoLL+8T\nVUcCgYgil44+MdRRYh63SEppvtkbGMJD93YDjp3ugoRi6u+GfXv/8RBb1QjI1zfO\n1bKVhcxu9PlFmcfSmzN+H48hQu+eLpJH930iqumVqPGw9UHR0JwZQhU9j/k665IS\nlIg1rSRgaX1KdpVsfx5Fv8qzCrL+aIjWV4u9RQPFBw1HEARCbS8EPCHVi3DL\n-----END RSA PRIVATE KEY-----\n')
                     self.username = username
                     self.password = password
                     self.super_dubba_key = password
@@ -4793,11 +4841,23 @@ class ChatApp(MDApp):
             self.show_toaster("Error changing password.")
 
     def create_chat(self, rec):
+        if not is_uuid4(rec):
+            self.connect()
+            self.sock.send(f"GET_ID:{rec}".encode())
+            o = self.sock.recv(1024)
+            if o == b"error":
+                self.show_toaster("Invalid recipient.")
+                return
+            rec = o.decode()
+        print(rec)
         try:
             global current_private_key, current_chat_with, is_it_my_turn
             is_it_my_turn = False
             personal = self.username + "#" + self.id
-
+            try:
+                self.sock.close()
+            except:
+                pass
             self.connect()
             self.sock.send(f"GET_PUBLIC:{rec}".encode())
             public_key = self.sock.recv(1024)
@@ -5244,8 +5304,9 @@ class ChatApp(MDApp):
         self.sock.settimeout(None)
         try:
             while True:
-                username = self.sock.recv(1024).decode()
+                username = self.sock.recv(1024)
                 print("U: ", username)
+                username = username.decode()
                 if username == "::GROUP_DELETION_INITIATED::":
                     self.screen_manager.current = "home"
                     self.show_toaster("Group got deleted.")
@@ -5291,6 +5352,7 @@ class ChatApp(MDApp):
 
     @mainthread
     def send_message_asy(self, message):
+        print(self.current_public_keys_group)
         try:
             for item in self.current_public_keys_group:
                 try:
@@ -5299,8 +5361,10 @@ class ChatApp(MDApp):
                     print("Encrypting message.")
                     enc = rsa.encrypt(message.encode(), public)
                     print("Sending username.")
+                    time.sleep(1)
                     self.sock.send(self.username.encode())
                     print("Sending message.")
+                    time.sleep(1)
                     self.sock.send(enc)
                 except:
                     pass
@@ -5530,7 +5594,7 @@ class ChatApp(MDApp):
                                 self.add_img(img_src=kk)
 
                             else:
-                                self.add2(message, "")
+                                self.add2(message, sender)
                                 print("Message:", message)
                         else:
                             self.screen_manager.current_screen = "home"
@@ -5632,7 +5696,7 @@ class ChatApp(MDApp):
             self.screen_manager.get_screen("chat_asy").chat_list.add_widget(
                 Response(text=message, size_hint_x=size + .3, halign=halign))
         except Exception as e:
-            print("Error14:", e)
+            print("Error14_asy:", e)
             pass
 
     @mainthread
