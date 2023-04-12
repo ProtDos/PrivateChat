@@ -3829,7 +3829,7 @@ if platform == "android":
                          Permission.CAMERA, Permission.INTERNET, Permission.INSTALL_PACKAGES])
 else:
     Window.size = (310, 580)
-    HOST, PORT = "localhost", 5000
+    # HOST, PORT = "localhost", 5000
 
 
 def connect_again():
@@ -5106,6 +5106,7 @@ class ChatApp(MDApp):
         self.screen_manager.get_screen("new_group_join").switch.active = False
         if state:
             if key != "":
+                self.current_public_keys_group = []
                 self.connect()
                 self.sock.send(f"JOIN_ASY_GROUP:{key}:{self.username}:{hash_pwd(self.password)}".encode())
                 while True:
