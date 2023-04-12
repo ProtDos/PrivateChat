@@ -5316,15 +5316,23 @@ class ChatApp(MDApp):
                     self.screen_manager.get_screen("chat_asy").bot_name.text = new
                 elif ":NEW_JOIN::" in username:
                     _, name, public = username.split("::")
-                    dec = base64.b64decode(public).decode()
-                    if dec not in self.current_public_keys_group:
-                        self.current_public_keys_group.append(dec)
+                    # dec = base64.b64decode(public).decode()
+                    if public not in self.current_public_keys_group:
+                        print("Added key.")
+                        print("-"*50)
+                        self.current_public_keys_group.append(public)
                     self.addjoin(name, mode="asy")
-                elif username.startswith(":NEW_LEAVE::"):
+                elif ":NEW_JOIN2::" in username:
+                    _, public = username.split("::")
+                    if public not in self.current_public_keys_group:
+                        print("Added key2.")
+                        print("-" * 50)
+                        self.current_public_keys_group.append(public)
+                elif ":NEW_LEAVE::" in username:
+                    print("NEW LEEEAVE")
                     _, name, public = username.split("::")
-                    dec = base64.b64decode(public).decode()
-                    if dec in self.current_public_keys_group:
-                        self.current_public_keys_group.remove(dec)
+                    if public in self.current_public_keys_group:
+                        self.current_public_keys_group.remove(public)
                     self.addleave(name, mode="asy")
                 elif username.startswith(":SCREENSHOT::"):
                     _, name = username.split("::")
@@ -5353,21 +5361,24 @@ class ChatApp(MDApp):
     @mainthread
     def send_message_asy(self, message):
         print(self.current_public_keys_group)
+        alr_sent = []
         try:
             for item in self.current_public_keys_group:
-                try:
-                    public = rr.PublicKey.load_pkcs1(base64.b64decode(item))
-                    print("Loaded public key: ", public)
-                    print("Encrypting message.")
-                    enc = rsa.encrypt(message.encode(), public)
-                    print("Sending username.")
-                    time.sleep(1)
-                    self.sock.send(self.username.encode())
-                    print("Sending message.")
-                    time.sleep(1)
-                    self.sock.send(enc)
-                except:
-                    pass
+                if item not in alr_sent:
+                    try:
+                        public = rr.PublicKey.load_pkcs1(base64.b64decode(item))
+                        print("Loaded public key: ", public)
+                        print("Encrypting message.")
+                        enc = rsa.encrypt(message.encode(), public)
+                        print("Sending username.")
+                        time.sleep(1)
+                        self.sock.send(self.username.encode())
+                        print("Sending message.")
+                        time.sleep(1)
+                        self.sock.send(enc)
+                    except:
+                        pass
+                    alr_sent.append(item)
             global size, halign, value
             if message != "":
                 value = message
