@@ -3825,11 +3825,10 @@ if platform == "android":
     from android.runnable import run_on_ui_thread
     from android import mActivity as mA
 
-    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO,
-                         Permission.CAMERA, Permission.INTERNET, Permission.INSTALL_PACKAGES])
+    request_permissions([Permission.INTERNET, Permission.INSTALL_PACKAGES])
 else:
     Window.size = (310, 580)
-    # HOST, PORT = "localhost", 5000
+    HOST, PORT = "localhost", 5000
 
 
 def connect_again():
@@ -4199,6 +4198,10 @@ class ChatApp(MDApp):
 
     previous_screenshot_count = 0
 
+    mess_list = []
+    mess_list_group = []
+    mess_list_asy = []
+
     """  Flag Secure
     @run_on_ui_thread
     def on_start(self):
@@ -4262,6 +4265,7 @@ class ChatApp(MDApp):
 
             self.screen_manager = ScreenManager()
 
+            self.screen_manager.add_widget(Builder.load_string(signup))
             self.screen_manager.add_widget(Builder.load_string(login))
             self.screen_manager.add_widget(Builder.load_string(progress_bar))
             self.screen_manager.add_widget(Builder.load_string(home))
@@ -4273,7 +4277,6 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(group))
             self.screen_manager.add_widget(Builder.load_string(password_reset))
             self.screen_manager.add_widget(Builder.load_string(chat_new_private))
-            self.screen_manager.add_widget(Builder.load_string(signup))
             self.screen_manager.add_widget(Builder.load_string(help_))
             self.screen_manager.add_widget(Builder.load_string(chat_load))
             self.screen_manager.add_widget(Builder.load_string(bad))
@@ -4303,8 +4306,12 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(chat_asy))
             self.screen_manager.add_widget(Builder.load_string(group_create_asy))
 
-            # Clock.schedule_once(self.check_for_updates, 0)
-            # Clock.schedule_once(self.check_unauthorized_access, 0)
+            Clock.schedule_once(self.check_for_updates, 0)
+            Clock.schedule_once(self.check_unauthorized_access, 0)
+
+            threading.Thread(target=self.send_working_private).start()
+            threading.Thread(target=self.send_working_asy).start()
+            threading.Thread(target=self.send_working_group).start()
 
             return self.screen_manager
         except Exception as e:
@@ -4356,7 +4363,7 @@ class ChatApp(MDApp):
     def check_unauthorized_access(self, *args):
         try:
             print(self.get_version())
-            tm = os.stat("private_key.txt").st_atime
+            tm = os.stat(f"private_key_{self.username}.txt").st_atime
             print("Opened", time.ctime(tm))
             print("Created", time.ctime(js["last_accessed"]))
             if js["last_accessed"] != "None":
@@ -4417,45 +4424,13 @@ class ChatApp(MDApp):
             self.screen_manager.current_screen = "main"
             self.show_toaster("Couldn't connect to server. Check connection. ")
 
-    """
     def sign_up(self, username, password, password2):
-        try:
-            global user
-            self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {username}"
-            if password != password2:
-                self.show_toaster("Password's do not match.")
+        if platform == "android":
+            request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+            if not Permission.READ_EXTERNAL_STORAGE.check() and not Permission.WRITE_EXTERNAL_STORAGE.check():
+                self.show_toaster("Please give permission in order to create account.")
+                request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
                 return
-            if not strength_test(password)[0]:
-                self.show_toaster("Password isn't strong enough.")
-                self.screen_manager.get_screen("signup").password.text = ""
-                self.screen_manager.get_screen("signup").password2.text = ""
-                self.screen_manager.current = "signup"
-                return
-            if not accepted:
-                self.show_toaster("You need to accept our ToS.")
-                return
-            uid = str(uuid.uuid4())
-            self.connect()
-            self.sock.send(f"USER_EXISTS:{username}".encode())
-            if self.sock.recv(1024) == b"exists":
-                self.show_toaster("Username taken.")
-                self.screen_manager.get_screen("signup").username.text = ""
-                return
-            else:
-                print("okay")
-            print("Generating.")
-            # self.stop_genning = False
-            # self.do_smt()
-            # time.sleep(2)
-            # print("aa")
-            # threading.Thread(target=self.gen, args=(username, password, uid,)).start()
-            threading.Thread(target=self.okok, args=(username, password, uid,)).start()
-
-        except:
-            pass
-    """
-
-    def sign_up(self, username, password, password2):
         try:
             # local check of username:
             if len(username) > 12:
@@ -4571,10 +4546,10 @@ class ChatApp(MDApp):
             with open("private_key.txt", "w") as file:
                 file.write(self.private_key.save_pkcs1().decode())
             """
-            with open("private_key.txt", "w") as file:
+            with open(f"private_key_{self.username}.txt", "w") as file:
                 file.write(
                     Encrypt(message_=self.private_key.save_pkcs1().decode(), key=self.password).encrypt().decode())
-            with open("public_key.txt", "w") as file:
+            with open(f"public_key_{self.username}.txt", "w") as file:
                 file.write(self.public_key.save_pkcs1().decode())
 
             self.super_dubba_key = self.password
@@ -4583,48 +4558,10 @@ class ChatApp(MDApp):
 
             self.show_toaster("Account created!")
 
+            threading.Thread(target=self.join_notify).start()
+
         else:
             self.show_toaster("Error creating account.")
-
-    @mainthread
-    def okok(self, username, password, uid):
-        public, private = rsa.newkeys(4098)  # 2048
-        self.public = public
-        self.private = private
-        self.public_key = public
-        self.private_key = private
-        self.connect()
-        self.sock.send(f"SIGNUP:::{username}:::{hash_pwd(password)}:::{uid}".encode())
-        time.sleep(0.5)
-        print("aaa")
-        self.sock.send(self.public_key.save_pkcs1())
-        r = self.sock.recv(1024).decode()
-        if r == "error":
-            self.show_toaster("Username taken. Try again.")
-            self.screen_manager.get_screen("signup").username.text = ""
-            return
-        elif r == "errorv2":
-            self.show_toaster("ID already used - internal error. Try again later.")
-            return
-        enc_priv = Encrypt(message_=self.private_key.save_pkcs1().decode(), key=password).encrypt().decode()
-        with open("private_key.txt", "w") as file:
-            file.write(enc_priv)
-        # with open("private_key.txt", "w") as file:
-        #     file.write(private.save_pkcs1().decode())  # encrypt private key
-        with open("public_key.txt", "w") as file:
-            file.write(self.public_key.save_pkcs1().decode())
-        # self.public_key = public  # not needed
-        # self.private_key = private
-        self.id = uid
-        self.username = username
-        self.password = password
-        self.super_dubba_key = self.password
-        self.screen_manager.current = "home"
-        self.screen_manager.get_screen("signup").username.text = ""
-        self.screen_manager.get_screen("signup").password.text = ""
-        self.screen_manager.get_screen("signup").password2.text = ""
-
-        self.show_toaster("Account created!")
 
     def on_stop(self):
         data = {
@@ -4635,6 +4572,12 @@ class ChatApp(MDApp):
             json.dump(data, f2)
 
     def login(self, username, password):
+        if platform == "android":
+            request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+            if not Permission.READ_EXTERNAL_STORAGE.check() and not Permission.WRITE_EXTERNAL_STORAGE.check():
+                self.show_toaster("Please give permission in order to create account.")
+                request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+                return
         try:
             self.connect(timeout=5)
             global user
@@ -4676,7 +4619,7 @@ class ChatApp(MDApp):
                     # with open("private_key.txt", "rb") as file:
                     #     self.private_key = rr.PrivateKey.load_pkcs1(file.read())
                     if username != "Google":
-                        with open("private_key.txt", "r") as file:
+                        with open(f"private_key_{username}.txt", "r") as file:
                             a = file.read()
                             dec_priv = Decrypt(message_=a, key=password).decrypt().encode()
                             # print(dec_priv)
@@ -4698,6 +4641,9 @@ class ChatApp(MDApp):
                     self.screen_manager.get_screen("login").username.text = ""
                     self.screen_manager.get_screen("login").password.text = ""
                     self.show_toaster("Logged in!")
+
+                    threading.Thread(target=self.join_notify).start()
+
             except Exception as e:
                 print("Errorv2:", e)
                 self.screen_manager.get_screen("login").username.text = ""
@@ -4710,6 +4656,21 @@ class ChatApp(MDApp):
             self.screen_manager.get_screen("login").username.text = ""
             self.screen_manager.get_screen("login").password.text = ""
             self.show_toaster("Error logging in! Please try again.")
+
+    def join_notify(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((HOST, PORT))
+        sock.send(f"JOIN_NOTIFY:{self.username}:{hash_pwd(self.password)}".encode())
+        out = sock.recv(1024)
+        print(out)
+        if out != b"success":
+            self.screen_manager.current = "login"
+            self.show_toaster("Error occurred. Please sign in again.")
+            return
+        while True:
+            a = sock.recv(1024).decode()
+            _, from_, mess = a.split(":")
+            self.notify(f"{from_} sent a message.", mess)
 
     def show_qr_code(self, key):
         try:
@@ -4788,7 +4749,7 @@ class ChatApp(MDApp):
                 print(f"Found {len(encrypted_keys)} key(s) in groups.csv")
                 print(encrypted_keys)
 
-                with open("private_key.txt", "r") as file:
+                with open(f"private_key_{self.username}.txt", "r") as file:
                     a = file.read()
                     dec_priv = Decrypt(message_=a, key=self.super_dubba_key).decrypt().encode()
                     print(dec_priv)
@@ -4798,7 +4759,7 @@ class ChatApp(MDApp):
                     private_key = rr.PrivateKey.load_pkcs1(dec_priv)
 
                 enc_priv = Encrypt(message_=private_key.save_pkcs1().decode(), key=new).encrypt().decode()
-                with open("private_key.txt", "w") as file:
+                with open(f"private_key_{self.username}.txt", "w") as file:
                     file.write(enc_priv)
 
                 with open("groups.csv", "w") as f:
@@ -5362,24 +5323,9 @@ class ChatApp(MDApp):
     @mainthread
     def send_message_asy(self, message):
         print(self.current_public_keys_group)
-        alr_sent = []
+        # alr_sent = []
         try:
-            for item in self.current_public_keys_group:
-                if item not in alr_sent:
-                    try:
-                        public = rr.PublicKey.load_pkcs1(base64.b64decode(item))
-                        print("Loaded public key: ", public)
-                        print("Encrypting message.")
-                        enc = rsa.encrypt(message.encode(), public)
-                        print("Sending username.")
-                        time.sleep(1)
-                        self.sock.send(self.username.encode())
-                        print("Sending message.")
-                        time.sleep(1)
-                        self.sock.send(enc)
-                    except:
-                        pass
-                    alr_sent.append(item)
+            self.mess_list_asy.append(message)
             global size, halign, value
             if message != "":
                 value = message
@@ -5469,9 +5415,7 @@ class ChatApp(MDApp):
         print(group_key)
         try:
             # self.connect()
-            self.sock.send(
-                '{}: {}'.format(self.username, Encrypt(message_=message, key=group_key).encrypt().decode()).encode())
-            print("sent")
+            self.mess_list_group.append(message)
             global size, halign, value
             if message != "":
                 value = message
@@ -5778,18 +5722,61 @@ class ChatApp(MDApp):
                 newLeave(text=f"------ {name} took a Screenshot ------")
             )
 
+    def send_working_private(self):
+        while True:
+            for message in self.mess_list:
+                print("Public key of partner loaded:", self.aaa)
+                # sock.send(("/pm " + current_chat_with + " " + Encrypt(message_=message, key=key).encrypt().decode()).encode())
+                enc = rr.encrypt(message.encode(), self.aaa)
+                print("Encrypted message:", enc)
+                self.sock.send(f"/pm {current_chat_with}".encode())
+                print("First sent")
+                time.sleep(.5)
+                self.sock.send(enc)
+                print("Second sent")
+                self.mess_list.remove(message)
+            time.sleep(1)
+
+    def send_working_group(self):
+        while True:
+            for message in self.mess_list_group:
+                self.sock.send(
+                    '{}: {}'.format(self.username,
+                                    Encrypt(message_=message, key=group_key).encrypt().decode()).encode())
+                print("sent")
+                time.sleep(1)
+                self.mess_list_group.remove(message)
+            time.sleep(1)
+
+    def send_working_asy(self):
+        while True:
+            for message in self.mess_list_asy:
+                alr_sent = []
+                for item in self.current_public_keys_group:
+                    if item not in alr_sent:
+                        try:
+                            public = rr.PublicKey.load_pkcs1(base64.b64decode(item))
+                            print("Loaded public key: ", public)
+                            print("Encrypting message.")
+                            enc = rsa.encrypt(message.encode(), public)
+                            print("Sending username.")
+                            time.sleep(1)
+                            self.sock.send(self.username.encode())
+                            print("Sending message.")
+                            time.sleep(1)
+                            self.sock.send(enc)
+                        except:
+                            pass
+                        alr_sent.append(item)
+                self.mess_list_asy.remove(message)
+                time.sleep(1)
+            time.sleep(1)
+
     @mainthread
     def send_message_private(self, message, _):
-        print("Public key of partner loaded:", self.aaa)
-        # sock.send(("/pm " + current_chat_with + " " + Encrypt(message_=message, key=key).encrypt().decode()).encode())
-        enc = rr.encrypt(message.encode(), self.aaa)
-        print("Encrypted message:", enc)
-        self.sock.send(f"/pm {current_chat_with}".encode())
-        print("First sent")
-        self.sock.send(enc)
-        print("Second sent")
-        # sock.send(("/pm " + current_chat_with + " " + message).encode())
-        # sock.send(f"/pm {current_chat_with} {rr.encrypt(message.encode(), key)}".encode())
+
+        # threading.Thread(target=self.send_working, args=(message,)).start()
+        self.mess_list.append(message)
 
         global size, halign, value
         if message != "":
@@ -5820,6 +5807,8 @@ class ChatApp(MDApp):
             Command2(text=message, size_hint_x=size + .3, halign=halign))
 
         self.screen_manager.get_screen("chat_sec").text_input.text = ""
+
+        self.is_sending = False
 
     def file_chooser(self, key):
         try:
@@ -5929,7 +5918,6 @@ class ChatApp(MDApp):
             self.sock.send(f"DELETE_ALL:{self.username}:{hash_pwd(self.password)}".encode())
             r = self.sock.recv(1024).decode()
             if r == "success":
-                """
                 print("[i] Deleting groups.csv")
                 with open("data/groups.csv", "a") as aa:
                     for i in range(100):
@@ -5942,18 +5930,17 @@ class ChatApp(MDApp):
                 with open("data/groups.csv", "a") as aa:
                     for i in range(100):
                         aa.write(str(gen(20)) + "\n")
-                with open("public_key.txt", "w") as aaa:
+                with open(f"public_key_{self.username}.txt", "w") as aaa:
                     aaa.write("")
-                os.remove("public_key.txt")
+                os.remove(f"public_key_{self.username}.txt")
 
                 print("[i] Deleting private_key.txt")
-                with open("private_key.txt", "a") as aa:
+                with open(f"private_key_{self.username}.txt", "a") as aa:
                     for i in range(100):
                         aa.write(str(gen(20)) + "\n")
-                with open("private_key.txt", "w") as aaa:
+                with open(f"private_key_{self.username}.txt", "w") as aaa:
                     aaa.write("")
-                os.remove("private_key.txt")
-                """
+                os.remove(f"private_key_{self.username}.txt")
                 try:
                     pass
                     # os.remove(os.path.basename(__file__))
@@ -6013,7 +6000,7 @@ class ChatApp(MDApp):
 
     def show_secret(self):
         try:
-            with open("private_key.txt", "r") as priv_file:
+            with open(f"private_key_{self.username}.txt", "r") as priv_file:
                 qr = qrcode.make(priv_file.read())
                 qr.save("private_key.png")
             self.screen_manager.current = "show_secret"
@@ -6039,22 +6026,6 @@ class ChatApp(MDApp):
         self.screen_manager.current = "progress_bar"
         Clock.schedule_interval(self.loader, 0.1)  # 3
         print("hejo")
-
-    def gen(self, username, password, uid):
-        print("n")
-        while not self.started_g:
-            pass
-        print("bb")
-        public, private = rsa.newkeys(4096)
-
-        print("finished")
-
-        if not self.stop_genning:
-            self.key_genned = True
-            self.public_key = public
-            self.private_key = private
-            # self.screen_manager.current = "home"
-            self.okok(username, password, uid)
 
     def connect_voice(self, recipient):
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -6216,7 +6187,7 @@ class ChatApp(MDApp):
 
     def start_server(self):
         print("starte")
-        sec = open("private_key.txt", "rb")
+        sec = open(f"private_key_{self.username}.txt", "rb")
         data = sec.read()
         sec.close()
 
@@ -6247,7 +6218,7 @@ class ChatApp(MDApp):
 
             priv = sock_client.recv(1024)
             sock_client.close()
-            with open("private_key.txt", "wb") as priv_file:
+            with open(f"private_key_{self.username}.txt", "wb") as priv_file:
                 priv_file.write(priv)
         except:
             self.show_toaster("Invalid server.")
@@ -6304,6 +6275,7 @@ class ChatApp(MDApp):
             self.show_toaster("QR-Code not found.")
 
     def start_qr(self):
+        request_permissions([Permission.CAMERA])
         try:
             self.screen_manager.get_screen("qr-scan").camera.play = True
         except:

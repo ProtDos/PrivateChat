@@ -35,6 +35,8 @@ private_chats = []
 clients__pr = {}
 buffer = []
 
+notify_list = []
+
 
 def check_username(name):
     every = string.printable[:-6]
@@ -597,6 +599,7 @@ def handle_client_while(client, p):
                 print("Request: ", request)
                 print("Message:", message)
                 # print("P:", p)
+
                 request = request.decode()
                 if request.startswith("/pm"):
                     _, idd = request.split(" ")
@@ -631,6 +634,18 @@ def handle_client(client, _, oho):
     threading.Thread(target=handle_client_while, args=(client, p,)).start()
 
 
+def send_notify(to, from_, message):
+    print("to:", to)
+    to = to.split("#")[1]
+    from_ = from_.split("#")[0]
+
+    for item in notify_list:
+        if item["id"] == to:
+            item["client"].send(f"NOTIFY:{from_}:_".encode())
+            print("yrsefsfsdf")
+            return
+
+
 def send_message(idd, message, p, buf=True):
     print(idd, message, p)
     if buf:
@@ -651,6 +666,7 @@ def send_message(idd, message, p, buf=True):
         except:
             buffer.append({"from": idd, "to": p, "mess": message})
             print("Sender not available.")
+            send_notify(idd, p, message)
     else:
         idd = get_username(idd) + "#" + idd
         try:
@@ -664,6 +680,7 @@ def send_message(idd, message, p, buf=True):
             print(e)
             buffer.append({"from": idd, "to": p, "mess": message})
             print("Sender not available.")
+            send_notify(idd, p, message)
 
 
 def fuck_around(client, address):
@@ -939,6 +956,14 @@ def fuck_around(client, address):
             thread2 = threading.Thread(target=handle, args=(client, group_id,))
             thread2.start()
             print("okay")
+        elif xxx.startswith("JOIN_NOTIFY:"):
+            _, username, paswd = xxx.split(":")
+            if check_username_exist(username) and get_password(username) == paswd:
+                notify_list.append({"client": client, "id": get_id(username)})
+                print(notify_list)
+                client.send(b"success")
+            else:
+                client.send(b"error")
         else:
             print("Unknown command.")
             client.close()
