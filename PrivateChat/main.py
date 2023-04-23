@@ -1618,6 +1618,16 @@ MDScreen:
                 pos_hint: {"center_x": .45, "center_y": 0}
                 size_hint_y: .03
                 md_bg_color: rgba(178, 178, 178, 255)
+            MDIconButton:
+                icon: "qrcode-scan"
+                color: 0, 0, 0, 0.4
+                text_color: 0, 0, 0, 0.4
+                theme_text_color: "Custom"
+                pos_hint: {"center_x": 1, "center_y": .5}
+                on_release:
+                    # root.manager.transition.direction = "left"
+                    # root.manager.current = "qr-scan"
+                    app.start_qr_group()
 
         MDSwitch:
             id: switch
@@ -3183,6 +3193,47 @@ MDScreen:
             on_press: app.capture()
 """
 
+qr_scan_group = """
+MDScreen:
+    name: "qr-scan-group"
+    camera: camera
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)            
+            on_release:
+                app.stop_qr_group()
+                # root.manager.transition.direction = "right"
+                # root.manager.current = "home"
+
+        Camera:
+            id: camera
+            # resolution: (640, 480)
+            allow_stretch: True
+            keep_ratio: True
+            play: False
+            canvas.before:
+                PushMatrix
+                Rotate:
+                    angle: -90
+                    origin: self.center
+            canvas.after:
+                PopMatrix
+
+
+        Button:
+            text: 'Capture'
+            size_hint_y: None
+            height: '48dp'
+            on_press: app.capture_group()
+"""
+
 group_settings = """
 MDScreen:
     name: "group_settings"
@@ -3781,6 +3832,366 @@ MDScreen:
                     app.send_message_asy(text_input.text)
 """
 
+pinn_old = """
+MDScreen:
+    name: "pinn"
+    Popup:
+        title: "Enter PIN"
+        size_hint: None, None
+        # size: 400, 200
+        size: root.size
+    
+        BoxLayout:
+            orientation: "vertical"
+            padding: 20
+    
+            Label:
+                text: "Please enter your PIN:"
+                
+    
+            TextInput:
+                id: pin_input
+                input_type: "number"
+                
+                password: True
+    
+            Button:
+                text: "Submit"
+                
+                on_release: app.authenticate_pin(pin_input.text)
+"""
+
+
+pinn = """
+MDScreen:
+    name: "pinn"
+    
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+
+        MDLabel:
+            text: "Enter your PIN."
+            font_name: "BPoppins"
+            font_size: "26sp"
+            pos_hint: {"center_x": .6, "center_y": .9}
+            color: rgba(0, 0, 59, 255)
+                        
+    GridLayout:
+        cols: 3
+        spacing: 5
+        padding: 20
+        
+        size_hint: 1, 1
+        pos_hint: {'center_x': 0.5, 'center_y': 0.1}
+        
+        # pos_hint: {"center_y": .5}
+        
+        MDIconButton:
+            icon: 'numeric-1-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(1)
+            
+        
+        MDIconButton:
+            icon: 'numeric-2-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(2)
+            
+        
+        MDIconButton:
+            icon: 'numeric-3-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(3)
+            
+        
+        MDIconButton:
+            icon: 'numeric-4-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(4)
+            
+        
+        MDIconButton:
+            icon: 'numeric-5-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(5)
+            
+        
+        MDIconButton:
+            icon: 'numeric-6-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(6)
+            
+        
+        MDIconButton:
+            icon: 'numeric-7-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(7)
+            
+        
+        MDIconButton:
+            icon: 'numeric-8-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(8)
+            
+             
+        MDIconButton:
+            icon: 'numeric-9-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(9)
+            
+        
+        MDIconButton:
+            icon: 'slash-forward'
+            disabled: True
+            size_hint_x: 0.33
+            # opacity: 0
+            
+        
+        MDIconButton:
+            icon: 'numeric-0-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(0)
+            
+        
+        MDIconButton:
+            icon: 'slash-forward'
+            disabled: True
+            size_hint_x: 0.33
+            # opacity: 0
+    
+    Button:
+        text: "Continue"
+        size_hint: .66, .065
+        pos_hint: {"center_x": .5, "center_y": .1}
+        background_color: 0, 0, 0, 0
+        front_name: "BPoppins"
+        canvas.before:
+            Color:
+                rgb: rgba(52, 0, 231, 255)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [5]
+        on_release:
+            app.authenticate_pin()
+"""
+pinn_create = """
+MDScreen:
+    name: "pinn_create"
+
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+
+        MDLabel:
+            text: "Create your PIN."
+            font_name: "BPoppins"
+            font_size: "26sp"
+            pos_hint: {"center_x": .6, "center_y": .9}
+            color: rgba(0, 0, 59, 255)
+
+    GridLayout:
+        cols: 3
+        spacing: 5
+        padding: 20
+
+        size_hint: 1, 1
+        pos_hint: {'center_x': 0.5, 'center_y': 0.1}
+
+        # pos_hint: {"center_y": .5}
+
+        MDIconButton:
+            icon: 'numeric-1-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(1)
+
+
+        MDIconButton:
+            icon: 'numeric-2-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(2)
+
+
+        MDIconButton:
+            icon: 'numeric-3-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(3)
+
+
+        MDIconButton:
+            icon: 'numeric-4-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(4)
+
+
+        MDIconButton:
+            icon: 'numeric-5-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(5)
+
+
+        MDIconButton:
+            icon: 'numeric-6-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(6)
+
+
+        MDIconButton:
+            icon: 'numeric-7-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(7)
+
+
+        MDIconButton:
+            icon: 'numeric-8-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(8)
+
+
+        MDIconButton:
+            icon: 'numeric-9-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(9)
+
+
+        MDIconButton:
+            icon: 'slash-forward'
+            disabled: True
+            size_hint_x: 0.33
+            # opacity: 0
+
+
+        MDIconButton:
+            icon: 'numeric-0-circle-outline'
+            size_hint_x: 0.33
+            on_release:
+                app.pin_list.append(0)
+
+
+        MDIconButton:
+            icon: 'slash-forward'
+            disabled: True
+            size_hint_x: 0.33
+            # opacity: 0
+
+    Button:
+        text: "Finish"
+        size_hint: .66, .065
+        pos_hint: {"center_x": .5, "center_y": .1}
+        background_color: 0, 0, 0, 0
+        front_name: "BPoppins"
+        canvas.before:
+            Color:
+                rgb: rgba(52, 0, 231, 255)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [5]
+        on_release:
+            app.create_pin()
+"""
+
+warning = """
+MDScreen:
+    name: "warning"
+
+    MDFloatLayout:
+        md_bg_color: 1, 1, 1, 1
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"center_y": .95}
+            user_font_size: "30sp"
+            theme_text_color: "Custom"
+            text_color: rgba(26, 24, 58, 255)
+            on_release:
+                root.manager.transition.direction = "right"
+                root.manager.current = "main"
+        MDLabel:
+            text: "Warning!"
+            font_name: "BPoppins"
+            font_size: "26sp"
+            pos_hint: {"center_x": .6, "center_y": .85}
+            color: rgba(0, 0, 59, 255)
+
+        MDLabel:
+            text: "Signing Error."
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .79}
+            color: rgba(135, 133, 193, 255)
+        
+        MDLabel:
+            text: "The message just send may"
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .69}
+            color: rgba(135, 133, 193, 255)
+        MDLabel:
+            text: "has been tampered."
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .65}
+            color: rgba(135, 133, 193, 255)
+        
+        MDLabel:
+            text: "Proceed with caution."
+            font_name: "BPoppins"
+            font_size: "18sp"
+            pos_hint: {"center_x": .6, "center_y": .59}
+            color: rgba(135, 133, 193, 255)
+
+        Button:
+            text: "Proceed"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .34}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(240, 40, 40, 255)
+            on_release:
+                app.screen_manager.current = "chat_sec"
+            canvas.before:
+                Color:
+                    rgb: rgba(240, 40, 40, 255)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100
+        
+        Button:
+            text: "End Convo"
+            size_hint: .66, .065
+            pos_hint: {"center_x": .5, "center_y": .24}
+            background_color: 0, 0, 0, 0
+            front_name: "BPoppins"
+            color: rgba(173,255,47,255)
+            on_release:
+                app.screen_manager.current = "chat_sec"
+            canvas.before:
+                Color:
+                    rgb: rgba(173,255,47,1)
+                Line:
+                    width: 1.2
+                    rounded_rectangle: self.x, self.y, self.width, self.height, 5, 5, 5, 5, 100             
+
+"""
+
 # TODO: Encrypted Calling
 
 # socket.setdefaulttimeout(5)
@@ -3828,7 +4239,7 @@ if platform == "android":
     request_permissions([Permission.INTERNET, Permission.INSTALL_PACKAGES])
 else:
     Window.size = (310, 580)
-    HOST, PORT = "localhost", 5000
+    HOST, PORT = "localhost", 5001
 
 
 def connect_again():
@@ -4202,6 +4613,11 @@ class ChatApp(MDApp):
     mess_list_group = []
     mess_list_asy = []
 
+    errors = 0
+    pin_list = []
+
+    is_authed = False
+
     """  Flag Secure
     @run_on_ui_thread
     def on_start(self):
@@ -4266,6 +4682,7 @@ class ChatApp(MDApp):
             self.screen_manager = ScreenManager()
 
             self.screen_manager.add_widget(Builder.load_string(signup))
+            self.screen_manager.add_widget(Builder.load_string(pinn))
             self.screen_manager.add_widget(Builder.load_string(login))
             self.screen_manager.add_widget(Builder.load_string(progress_bar))
             self.screen_manager.add_widget(Builder.load_string(home))
@@ -4275,6 +4692,8 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(group_create))
             self.screen_manager.add_widget(Builder.load_string(group_join))
             self.screen_manager.add_widget(Builder.load_string(group))
+            self.screen_manager.add_widget(Builder.load_string(warning))
+            self.screen_manager.add_widget(Builder.load_string(pinn_create))
             self.screen_manager.add_widget(Builder.load_string(password_reset))
             self.screen_manager.add_widget(Builder.load_string(chat_new_private))
             self.screen_manager.add_widget(Builder.load_string(help_))
@@ -4306,12 +4725,18 @@ class ChatApp(MDApp):
             self.screen_manager.add_widget(Builder.load_string(chat_asy))
             self.screen_manager.add_widget(Builder.load_string(group_create_asy))
 
-            Clock.schedule_once(self.check_for_updates, 0)
+            self.screen_manager.add_widget(Builder.load_string(qr_scan_group))
+
+            # Clock.schedule_once(self.check_for_updates, 0)
             Clock.schedule_once(self.check_unauthorized_access, 0)
+            Clock.schedule_once(self.check_stay, 0)
+            # Clock.schedule_once(self.check_pin, 0)
 
             threading.Thread(target=self.send_working_private).start()
             threading.Thread(target=self.send_working_asy).start()
             threading.Thread(target=self.send_working_group).start()
+            # threading.Thread(target=self.check_stay).start()
+            # threading.Thread(target=self.check_pin).start()
 
             return self.screen_manager
         except Exception as e:
@@ -4333,6 +4758,51 @@ class ChatApp(MDApp):
                 Clock.schedule_interval(self.check_screenshots, 1)
             except:
                 print("v2 failed.")
+
+    def check_stay(self, *args):
+        if os.path.isfile("stay_sign_in.txt"):
+            self.username, self.password = open("stay_sign_in.txt", "r").read().split("\n")
+
+            self.connect()
+            self.sock.send(f"LOGIN:::{self.username}:::{hash_pwd(self.password)}".encode())
+            r = self.sock.recv(1024).decode()
+            # print(r)
+            if r == "error":
+                self.show_toaster("Invalid username")
+                self.screen_manager.get_screen("login").username.text = ""
+                self.screen_manager.get_screen("login").password.text = ""
+                return
+            elif r == "errorv2":
+                self.show_toaster("Invalid password")
+                self.screen_manager.get_screen("login").password.text = ""
+                return
+            else:
+                if self.username != "Google":
+                    with open(f"private_key_{self.username}.txt", "r") as file:
+                        a = file.read()
+                        dec_priv = Decrypt(message_=a, key=self.password).decrypt().encode()
+                        # print(dec_priv)
+                        if dec_priv is None:
+                            self.show_toaster("Private key couldn't be decrypted.")
+                            return
+                        self.private_key = rr.PrivateKey.load_pkcs1(dec_priv)
+                else:
+                    self.public_key = rr.PublicKey.load_pkcs1(
+                        b'-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAlinP8nQRq3UWBtimgucKjX8bO9xG9dBXPsTJy8VLek9e1GDzSvum\nujfD1EXEvtAJHOQWzkAfCI8X/NfwjHnZ6PVAeka8cZooR05q/nyeeJcqJNTR3WDH\nxNVe7FL1IsML//BtYibumbogDNVrzsN1YAcxtK4M60GgHUPBgZMoJCXuLiP/QQIC\nnOCKKdresNS7UYqrltr68xcBQLkBfbeJtlICOdLfYX31Krroi6PiRF3hVvEiTLXh\nNgVukTrkf7Afp+/C10mE5NClLfjrGFPZmbaAwrLCV6t5bWGWifG7NVUQtAZC8yjz\nV9jJljVLaXp4sQmGgE4ATvHqgvuAJQRyhQIDAQAB\n-----END RSA PUBLIC KEY-----\n')
+                    self.private_key = rr.PrivateKey.load_pkcs1(
+                        b'-----BEGIN RSA PRIVATE KEY-----\nMIIEqQIBAAKCAQEAlinP8nQRq3UWBtimgucKjX8bO9xG9dBXPsTJy8VLek9e1GDz\nSvumujfD1EXEvtAJHOQWzkAfCI8X/NfwjHnZ6PVAeka8cZooR05q/nyeeJcqJNTR\n3WDHxNVe7FL1IsML//BtYibumbogDNVrzsN1YAcxtK4M60GgHUPBgZMoJCXuLiP/\nQQICnOCKKdresNS7UYqrltr68xcBQLkBfbeJtlICOdLfYX31Krroi6PiRF3hVvEi\nTLXhNgVukTrkf7Afp+/C10mE5NClLfjrGFPZmbaAwrLCV6t5bWGWifG7NVUQtAZC\n8yjzV9jJljVLaXp4sQmGgE4ATvHqgvuAJQRyhQIDAQABAoIBACKRh5SKEdNFxgdX\ncqWp6G0AeNWD9TX7e0ow5T+qsKB8ixkbJIb7fbtawRMp6IwAukhTXcinTD2dK2mC\nkJbWKksNwoUjqZgBZApeTBU/vP+H1STbdWCgOfzfHdYLlvEks6t8vsGcssri5SPv\nMb1Mk8XCgjfU5ZZ26ekuVV0VJLoMAeTQT9GSQBPeLLI38YQsLvWWLBiGP+zbAC9E\nH7JhnLf6yZzcWUrt8F8uFclydM1Zl/Jzvtf2v7DXZBapr7goykgJt+dfOqG6L3mN\n7K7HIKPMdWT/j2TiS9bjEik7NQV/CkqltNE+SiXJqddDqHJZklHSSKERUgNoc+s1\nvKPS1XUCgYkAutyUZcFY/VROPZQHGGJ7DF13j1y3GajcfdM/W9dWNaTKD+JSu0NJ\n29txB/7zPT+JNtBZ/Jb2WzFtY8hmeZKSYZJAJPpOHBweBZLVnZdocg+WVbAOBjXu\nPpJm0G9lQY0NPgetJm7gxRAx7HtohGBAXkp/Q5sskzLeEOXhaRwg3hIcMPi9LaMY\nywJ5AM25MOwluNdqzVE2H7kyODIb3guXHT73qQ9bMM91CWVo3NCP4+eR9yYVtRgv\nQ8Nbu5K1pFYQEifk6O8Xl/O+h5x4lBUbOwN5yezQxYBs+mXhbrZR6HN+IuSLidzj\nCViQ+BmJwE9uXfl4h5fI8EU/yo99WoSJjaBH7wKBiGW/F9q0ReVi01t6T8a6UO/x\nsNlSDa0eIjktHpG+lgWNniy5+nxW7k+VlF1bOE0AXJGJL4Z3GNuc9Uhg5VOLOMOC\nJAU+eeuab8pvInu15rw8uoob2/cLxJczlmImVcc0q6I8Ac8sjp0e7WAr7kQuOL5e\n6B8Czmm0R/CBi5R1KXxh9hHATxobdbMCeQC9abZupyiyRqa2EGRTCrcNA/WErGUE\nFdk1x1uAl5zIHy24ZdOL4iwxh6kOlG4K0Eo7AT1G9FMTIkOJ6CpDBPktiyOk70Z9\no8PUZECER1KhPVfHTFD/DXMpBIUxuGRhhFC6isdjGxYxXNVTXnJDAEILrXoLL+8T\nVUcCgYgil44+MdRRYh63SEppvtkbGMJD93YDjp3ugoRi6u+GfXv/8RBb1QjI1zfO\n1bKVhcxu9PlFmcfSmzN+H48hQu+eLpJH930iqumVqPGw9UHR0JwZQhU9j/k665IS\nlIg1rSRgaX1KdpVsfx5Fv8qzCrL+aIjWV4u9RQPFBw1HEARCbS8EPCHVi3DL\n-----END RSA PRIVATE KEY-----\n')
+                _, idd = r.split(":")
+                self.id = idd
+                self.super_dubba_key = self.password
+
+                self.screen_manager.current = "pinn"
+
+                return
+
+        self.screen_manager.current = "signup"
+
+    def check_pin(self, *args):
+        pass
 
     def check_screenshots(self, dt):
         try:
@@ -4558,6 +5028,9 @@ class ChatApp(MDApp):
 
             self.show_toaster("Account created!")
 
+            with open("stay_sign_in.txt", "w") as stay_file:
+                stay_file.write(f"{self.username}\n{self.password}")
+
             threading.Thread(target=self.join_notify).start()
 
         else:
@@ -4642,6 +5115,9 @@ class ChatApp(MDApp):
                     self.screen_manager.get_screen("login").password.text = ""
                     self.show_toaster("Logged in!")
 
+                    with open("stay_sign_in.txt", "w") as stay_file:
+                        stay_file.write(f"{self.username}\n{self.password}")
+
                     threading.Thread(target=self.join_notify).start()
 
             except Exception as e:
@@ -4668,9 +5144,32 @@ class ChatApp(MDApp):
             self.show_toaster("Error occurred. Please sign in again.")
             return
         while True:
-            a = sock.recv(1024).decode()
-            _, from_, mess = a.split(":")
-            self.notify(f"{from_} sent a message.", mess)
+            try:
+                a = sock.recv(1024).decode()
+                print(a)
+                b = sock.recv(1024)
+                print(b)
+                _, from_ = a.split(":")
+                try:
+                    b = rsa.decrypt(b, self.private_key).decode()
+                except:
+                    print("Invalid key.")
+                    notification.notify(
+                        title=f"{from_} sent a message.",
+                        message="Sign In to see message.",
+                        timeout=10,
+                        app_name='Encochat',
+                    )
+                else:
+                    notification.notify(
+                        title=f"{from_} sent a message.",
+                        message=b,
+                        timeout=10,
+                        app_name='Encochat',
+                    )
+            except Exception as e:
+                print(e)
+                break
 
     def show_qr_code(self, key):
         try:
@@ -4952,7 +5451,14 @@ class ChatApp(MDApp):
                             m = self.sock.recv(1024)
                             print("Shorted message:", m)
                             print("Decrypted:", rr.decrypt(m, self.private_key))
+                            sign = self.sock.recv(1024)
+                            print("SIGNGNGNG", sign)
+
                             m = rr.decrypt(m, self.private_key).decode()
+                            try:
+                                rr.verify(m.encode(), sign, self.aaa)
+                            except:
+                                self.verify_error()
                             # m = m[2:]
                             # m = m[:-1]
                             # print(m)
@@ -4963,6 +5469,12 @@ class ChatApp(MDApp):
                             print("OOOOOKAY")
                             m = self.sock.recv(1024)
                             m = rr.decrypt(m, self.private_key).decode()
+                            sign = self.sock.recv(1024)
+                            print("SIGNGNGNG2", sign)
+                            try:
+                                rr.verify(m.encode(), sign, self.aaa)
+                            except:
+                                self.verify_error()
                             self.add(m)
                         else:
                             try:
@@ -5728,12 +6240,16 @@ class ChatApp(MDApp):
                 print("Public key of partner loaded:", self.aaa)
                 # sock.send(("/pm " + current_chat_with + " " + Encrypt(message_=message, key=key).encrypt().decode()).encode())
                 enc = rr.encrypt(message.encode(), self.aaa)
+                signature = rr.sign(message.encode(), self.private_key, "SHA-256")
                 print("Encrypted message:", enc)
                 self.sock.send(f"/pm {current_chat_with}".encode())
                 print("First sent")
                 time.sleep(.5)
                 self.sock.send(enc)
                 print("Second sent")
+                time.sleep(.5)
+                self.sock.send(signature)
+                print("Third sent.")
                 self.mess_list.remove(message)
             time.sleep(1)
 
@@ -6274,8 +6790,41 @@ class ChatApp(MDApp):
             print("Nothing found.")
             self.show_toaster("QR-Code not found.")
 
+    def capture_group(self):
+        """
+        Function to capture the images and give them the names
+        according to their captured time and date.
+        """
+        camera = self.screen_manager.get_screen("qr-scan-group").camera
+        texture = camera.texture
+        size2 = texture.size
+        pixels = texture.pixels
+        print(texture, size2, pixels)
+        pil_image = IImage.frombytes(mode='RGBA', size=size2, data=pixels)
+        self.scan_g(pil_image)
+        print("Captured")
+
+    def scan_g(self, path):
+        print(path)
+        path = numpy.array(path)
+        path = cv2.flip(path, 0)
+        try:
+            result = decode(path)
+            print(result)
+            a = result[0].data.decode()
+            print(a)
+            self.screen_manager.get_screen("qr-scan-group").camera.play = False
+            self.screen_manager.current = "new_group_join"
+            self.screen_manager.get_screen("new_group_join").name_.text = a
+            self.show_toaster("Found.")
+        except Exception as e:
+            print(e)
+            print("Nothing found.")
+            self.show_toaster("QR-Code not found.")
+
     def start_qr(self):
-        request_permissions([Permission.CAMERA])
+        if platform == "android":
+            request_permissions([Permission.CAMERA])
         try:
             self.screen_manager.get_screen("qr-scan").camera.play = True
         except:
@@ -6286,10 +6835,28 @@ class ChatApp(MDApp):
         except:
             pass
 
+    def start_qr_group(self):
+        if platform == "android":
+            request_permissions([Permission.CAMERA])
+        try:
+            self.screen_manager.get_screen("qr-scan-group").camera.play = True
+        except:
+            pass
+        try:
+            self.screen_manager.transition.direction = "left"
+            self.screen_manager.current = "qr-scan-group"
+        except:
+            pass
+
     def stop_qr(self):
         self.screen_manager.get_screen("qr-scan").camera.play = False
         self.screen_manager.transition.direction = "right"
         self.screen_manager.current = "chat_private"
+
+    def stop_qr_group(self):
+        self.screen_manager.get_screen("qr-scan-group").camera.play = False
+        self.screen_manager.transition.direction = "right"
+        self.screen_manager.current = "new_group_join"
 
     def rename_group(self, new_group_name):
         # self.group_name
@@ -6342,6 +6909,72 @@ class ChatApp(MDApp):
 
     def disable_flag_secure(self):
         pass
+
+    @staticmethod
+    def start_service():
+        from jnius import autoclass
+        service = autoclass("org.mindset.codered.ServiceCodered")
+        mActivity = autoclass("org.kivy.android.PythonActivity").mActivity
+        service.start(mActivity, "")
+        return service
+
+    def save_pin(self, pin):
+        salt = os.urandom(32)
+        stored_data = {
+            'salt': salt.hex(),
+            'hashed_pin': ''
+        }
+        # Hash the PIN with the salt
+        hashed_pin = hashlib.pbkdf2_hmac('sha256', pin.encode('utf-8'), salt, 100000)
+
+        # Store the hashed PIN in the data dictionary
+        stored_data['hashed_pin'] = hashed_pin.hex()
+
+        # Save the data dictionary to a JSON file
+        with open('pin_data.json', 'w') as f:
+            json.dump(stored_data, f)
+
+        return True
+
+    def authenticate_pin(self):
+        try:
+            pin = ''.join(map(str, self.pin_list))
+            print(pin)
+
+            self.pin_list = []
+
+            # Load the stored data from the JSON file
+            with open('pin_data.json', 'r') as f:
+                stored_data = json.load(f)
+
+            # Extract the salt from the stored data
+            # stored_salt = bytes.fromhex(stored_data['salt'])
+
+            # Hash the input PIN with the stored salt
+            # input_hashed_pin = hashlib.pbkdf2_hmac('sha256', pin.encode('utf-8'), stored_salt, 100000)
+
+            # Compare the stored hashed PIN with the input hashed PIN
+            # if input_hashed_pin.hex() == stored_data['hashed_pin']:
+            a = hashlib.sha256(pin.encode()).hexdigest()
+            print(a)
+            if a == stored_data['destruct_pin']:
+                self.show_toaster("Destoying")
+            elif a == stored_data['hashed_pin']:
+                self.errors = 0
+                self.screen_manager.get_screen("home").welcome_name.text = f"Welcome {self.username}"
+                self.screen_manager.current = "home"
+                self.show_toaster("Logged in!")
+                threading.Thread(target=self.join_notify).start()
+                return True
+            else:
+                self.errors += 1
+                return False
+        except Exception:
+            self.show_toaster("Invalid PIN.")
+            self.errors += 1
+
+    def verify_error(self):
+        self.screen_manager.current = "warning"
 
 
 if __name__ == "__main__":

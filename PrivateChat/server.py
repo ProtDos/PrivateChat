@@ -9,7 +9,7 @@ import hashlib
 import string
 
 host = "localhost"
-port = 5000
+port = 5001
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, port))
@@ -598,12 +598,13 @@ def handle_client_while(client, p):
                 message = client.recv(1024)
                 print("Request: ", request)
                 print("Message:", message)
+                signature = client.recv(1024)
                 # print("P:", p)
 
                 request = request.decode()
                 if request.startswith("/pm"):
                     _, idd = request.split(" ")
-                    send_message(idd, message, p, buf=False)
+                    send_message(idd, message, p, buf=False, signature=signature)
                 else:
                     print("Invalid.")
                     client.close()
@@ -629,7 +630,7 @@ def handle_client(client, _, oho):
         if item["from"] == p:
             print("yws")
             print("FROM:", item["from"])
-            send_message(item["from"], item["mess"], p, buf=True)
+            send_message(item["from"], item["mess"], p, buf=True, signature=None)
             buffer.remove(item)
     threading.Thread(target=handle_client_while, args=(client, p,)).start()
 
@@ -641,12 +642,14 @@ def send_notify(to, from_, message):
 
     for item in notify_list:
         if item["id"] == to:
-            item["client"].send(f"NOTIFY:{from_}:_".encode())
+            item["client"].send(f"NOTIFY:{from_}".encode())
             print("yrsefsfsdf")
+            time.sleep(.5)
+            item["client"].send(message)
             return
 
 
-def send_message(idd, message, p, buf=True):
+def send_message(idd, message, p, buf, signature):
     print(idd, message, p)
     if buf:
         try:
@@ -676,9 +679,12 @@ def send_message(idd, message, p, buf=True):
             print("waiting x2")
             time.sleep(1)
             recipient_socket.send(message)
+            print("waiting x3")
+            time.sleep(1)
+            recipient_socket.send(signature)
         except Exception as e:
             print(e)
-            buffer.append({"from": idd, "to": p, "mess": message})
+            buffer.append({"from": idd, "to": p, "mess": message, "sign": signature})
             print("Sender not available.")
             send_notify(idd, p, message)
 
@@ -959,7 +965,14 @@ def fuck_around(client, address):
         elif xxx.startswith("JOIN_NOTIFY:"):
             _, username, paswd = xxx.split(":")
             if check_username_exist(username) and get_password(username) == paswd:
-                notify_list.append({"client": client, "id": get_id(username)})
+                lol = False
+                for item in notify_list:
+                    if item["id"] == get_id(username):
+                        item["client"] = client
+                        lol = True
+                        break
+                if not lol:
+                    notify_list.append({"client": client, "id": get_id(username)})
                 print(notify_list)
                 client.send(b"success")
             else:
