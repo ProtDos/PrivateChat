@@ -22,7 +22,7 @@ pypiwin32
 pypng
 pywin32
 qrcode~=7.4.2
-requests~=2.28.2
+requests~=2.31.0
 rsa~=4.9
 six
 typing-extensions
