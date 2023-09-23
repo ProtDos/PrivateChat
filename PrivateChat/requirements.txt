@@ -6,7 +6,7 @@ certifi
 cffi
 charset_normalizer
 colorama
-cryptography~=39.0.1
+cryptography~=41.0.4
 docutils
 idna
 kivy-deps.angle
