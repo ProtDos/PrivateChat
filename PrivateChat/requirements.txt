@@ -1,6 +1,6 @@
 kivy~=2.1.0
 kivy_garden
-pillow~=9.4.0
+pillow~=10.0.1
 pygments
 certifi
 cffi
