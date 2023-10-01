@@ -32,6 +32,6 @@ PyAudio~=0.2.13
 pyzbar~=0.1.9
 numpy~=1.23.5
 sympy~=1.11.1
-opencv-python~=4.7.0.72
+opencv-python~=4.8.1.78.72
 android
 sounddevice
